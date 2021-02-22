@@ -7,3 +7,4 @@
 *.out
 *.gz
 paper/XCS224U_final_paper.pdf
+code/__pycache__
