@@ -141,7 +141,7 @@ class ColorsCorpusExample:
         """
         return self.contents.split(TURN_BOUNDARY)
 
-    def display(self, typ='model'):
+    def display(self, typ='model', print_contents=True):
         """
         Prints examples to the screen in an intuitive format: the
         utterance text appears first, following by the three color
@@ -169,7 +169,7 @@ class ColorsCorpusExample:
         all embed nicely.
 
         """
-        print(self.contents)
+        if print_contents: print(self.contents)
         if typ == 'model':
             colors = self.colors
             target_index = 2
@@ -191,6 +191,26 @@ class ColorsCorpusExample:
             patch = mpatch.Rectangle((0, 0), 1, 1, color=c, ec=ec, lw=8)
             axes[i].add_patch(patch)
             axes[i].axis('off')
+
+    def normalized_rgb_colors(self, typ='model'):
+        if typ == 'model':
+            colors = self.colors
+        elif typ == 'listener':
+            colors = self.listener_context
+        elif typ == 'speaker':
+            colors = self.speaker_context
+
+        return [list(self._convert_hls_to_rgb(*color)) for color in colors]
+
+    def rgb_colors(self, typ='model'):
+        colors = self.normalized_rgb_colors(typ)
+        rgb_colors = []
+
+        for color in colors:
+            rgb_color = [int(value * 255) for value in color]
+            rgb_colors.append(rgb_color)
+
+        return rgb_colors
 
     def _get_color_rep(self, row, typ):
         rep = []
