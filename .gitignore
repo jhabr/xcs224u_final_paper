@@ -8,3 +8,4 @@
 *.gz
 paper/XCS224U_final_paper.pdf
 code/__pycache__
+code/.ipynb_checkpoints
