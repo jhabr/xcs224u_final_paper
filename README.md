@@ -7,6 +7,8 @@
 
 ## Useful Links
 
-- Latex Class for the Association for Computing
-Machinery
+- Latex Class for the Association for Computing Machinery  
 https://www.acm.org/binaries/content/assets/publications/consolidated-tex-template/acmart.pdf
+
+- HSL color converter  
+https://www.w3schools.com/colors/colors_hsl.asp
