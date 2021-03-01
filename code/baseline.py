@@ -1,7 +1,5 @@
-import colorsys
-import cmath as cm
+import baseline_utils as bu
 from enum import Enum
-from itertools import product
 import os
 import string
 import re
@@ -25,10 +23,14 @@ class BaselineTokenizer:
         """
         Encodes the text in order to be used with the baseline system.
 
-        :param text: string
+        Parameters
+        ----------
+        text: string
             The text to be encoded.
 
-        :return: list
+        Returns
+        -------
+        list
             The encoded text as list of tokens
         """
         text = text.lower()
@@ -55,38 +57,20 @@ class BaselineColorEncoder:
         """
         Encodes HLS colors to HSV colors and performs a discrete fourier transform.
 
-        :param hls_colors: list
+        Parameters
+        ----------
+        hls_colors: list
             The color context in HLS format
 
-        :return: list
+        Returns
+        -------
+        list
             The HSV-converted and fourier transformed colors
         """
 
         return [
-            self.__fourier_transform(self.__hls_to_hsv(hls_color)) for hls_color in hls_colors
+            bu.fourier_transform(bu.hls_to_hsv(hls_color)) for hls_color in hls_colors
         ]
-
-    def __fourier_transform(self, hsv_color):
-        real = []
-        imaginary = []
-
-        for j, k, l in product((0, 1, 2), repeat=3):
-            f_jkl = cm.exp(-2j * cm.pi * (j * hsv_color[0] + k * hsv_color[1] + l * hsv_color[2]))
-            real.append(f_jkl.real)
-            imaginary.append(f_jkl.imag)
-
-        transformed_color = real + imaginary
-
-        assert len(transformed_color) == 54  # 54 dimensions as in paper
-
-        return transformed_color
-
-    def __hls_to_hsv(self, hls_color):
-        h, l, s = hls_color
-        r, g, b = colorsys.hls_to_rgb(h, l, s)
-        h, s, v = colorsys.rgb_to_hsv(r, g, b)
-
-        return [h, s, v]
 
 
 class GloVeEmbedding(Enum):
@@ -105,13 +89,18 @@ class BaselineEmbedding:
 
     def create_glove_embedding(self, vocab, dim=GloVeEmbedding.DIM_50):
         """
-        :param vocab: list of str
+        Creates a GloVe embedding for the vocab with the selected dimension.
+
+        Parameters
+        ----------
+        vocab: list of str
             Words to create embeddings for.
 
-        :param dim: GloVeEmbedding
+        dim: GloVeEmbedding
             The dimension for the glove embedding
 
-        :return:
+        Returns
+        -------
           embeddings
           expanded_vocab
         """
