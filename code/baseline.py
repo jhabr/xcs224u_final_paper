@@ -10,7 +10,7 @@ import utils
 from utils import START_SYMBOL, END_SYMBOL
 
 __authors__ = "Anton Gochev, Jaro Habr, Yan Jiang, Samuel Kahn"
-__version__ = "XCS224u, Stanford, Spring 2021"
+__version__ = "XCS224u, Stanford, Winter 2021"
 
 
 class BaselineTokenizer:

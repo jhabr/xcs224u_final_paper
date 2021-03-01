@@ -3,7 +3,7 @@ import cmath as cm
 from itertools import product
 
 __authors__ = "Anton Gochev, Jaro Habr, Yan Jiang, Samuel Kahn"
-__version__ = "XCS224u, Stanford, Spring 2021"
+__version__ = "XCS224u, Stanford, Winter 2021"
 
 
 def fourier_transform(hsv_color):
