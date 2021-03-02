@@ -50,7 +50,7 @@ class BaselineTokenizer:
 
 class BaselineColorEncoder:
     """
-    This class is responsimble for encoding HLS colors to other color formats.
+    This class is responsible for encoding HLS colors to other color formats.
     """
 
     def encode_color_context(self, hls_colors):
