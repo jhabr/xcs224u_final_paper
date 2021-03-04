@@ -20,10 +20,10 @@ class ColorEncoder:
 class ColorConfig(object):
     model_type: str = "bert"
 
-    def __init__(self, hls_colors=None):
+    def __init__(self, hls_colors: list):
         self.hls_colors = hls_colors
 
-    def to_dict(self):
+    def to_dict(self) -> dict:
         return {
             'hls_colors': self.hls_colors,
             'model_type': self.__class__.model_type
@@ -35,12 +35,12 @@ class ColorTransformerModel(nn.Module):
     Hope to use it with transformers encoder/decoder model
     """
 
-    def __init__(self, config):
+    def __init__(self, config: ColorConfig):
         super().__init__()
         self.config = config
         self.hls_colors = config.hls_colors
 
-    def get_output_embeddings(self):
+    def get_output_embeddings(self) -> list:
         return [
             bu.fourier_transform(bu.hls_to_hsv(hls_color)) for hls_color in self.hls_colors
         ]
