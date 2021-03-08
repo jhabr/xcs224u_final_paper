@@ -345,11 +345,13 @@ class EncoderDecoder(nn.Module):
         """
         if hidden is None:
             hidden = self.encoder(color_seqs)
+        # print(word_seqs)
         output, hidden = self.decoder(
             word_seqs, seq_lengths=seq_lengths, hidden=hidden)
         if self.training:
             return output
         else:
+
             return output, hidden
 
 
@@ -538,7 +540,6 @@ class ContextualColorDescriber(TorchModelBase):
             # Now move through the remaiming timesteps using the
             # previous timestep to predict the next one:
             for i in range(1, max_length):
-
                 output, hidden = self.model(
                     color_seqs=color_seqs,
                     word_seqs=decoder_input,
@@ -623,17 +624,18 @@ class ContextualColorDescriber(TorchModelBase):
                 batch_colors = batch_colors.to(device)
                 batch_words = batch_words.to(device)
                 batch_lens = batch_lens.to(device)
-
+                # print(batch_words)
+                # print(batch_colors)
+                # print(batch_lens)
                 output, _ = self.model(
                     color_seqs=batch_colors,
                     word_seqs=batch_words,
                     seq_lengths=batch_lens)
-
                 probs = softmax(output)
+                # print(probs)
                 probs = probs.cpu().numpy()
                 probs = np.insert(probs, 0, start_probs, axis=1)
                 all_probs += [p[: n] for p, n in zip(probs, batch_lens)]
-
         self.model.to(self.device)
 
         return all_probs
