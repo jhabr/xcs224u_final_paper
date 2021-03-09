@@ -1,4 +1,4 @@
-import baseline_utils as bu
+import baseline.helper as bh
 from enum import Enum
 import os
 import string
@@ -69,7 +69,7 @@ class BaselineColorEncoder:
         """
 
         return [
-            bu.fourier_transform(bu.hls_to_hsv(hls_color)) for hls_color in hls_colors
+            bh.fourier_transform(bh.hls_to_hsv(hls_color)) for hls_color in hls_colors
         ]
 
 
@@ -85,7 +85,7 @@ class BaselineEmbedding:
     This class is responsible for handling the embeddings of the baseline system.
     """
 
-    GLOVE_HOME = os.path.join('data', 'glove.6B')
+    GLOVE_HOME = os.path.join('data', 'embeddings', 'glove.6B')
 
     def create_glove_embedding(self, vocab, dim=GloVeEmbedding.DIM_50):
         """
