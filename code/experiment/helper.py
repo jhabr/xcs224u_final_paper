@@ -8,7 +8,7 @@ __version__ = "XCS224u, Stanford, Winter 2021"
 
 
 class EmbeddingType(Enum):
-    BERT = 'bert/bert.128d.txt'
+    BERT = 'bert/en.embed.bert.base_uncased.768d.txt'
 
 
 class Embedding:
