@@ -6,7 +6,7 @@ import re
 from utils.torch_color_describer import Encoder, Decoder, EncoderDecoder, ContextualColorDescriber
 import torch
 import torch.nn as nn
-import utils
+import utils.utils as utils
 from utils.utils import START_SYMBOL, END_SYMBOL
 
 __authors__ = "Anton Gochev, Jaro Habr, Yan Jiang, Samuel Kahn"

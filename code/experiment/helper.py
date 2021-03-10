@@ -8,7 +8,9 @@ __version__ = "XCS224u, Stanford, Winter 2021"
 
 
 class EmbeddingType(Enum):
-    BERT = 'bert/en.embed.bert.base_uncased.768d.txt'
+    BERT_TOKENS = 'bert/en.embed.bert.base_uncased.tokens.768d.txt'
+    BERT = 'bert/en.embed.bert.base_uncased.vocab.768d.txt'
+    XLNET = 'xlnet/en.embed.xlnet_base_cased.vocab.768d.txt'
 
 
 class Embedding:
