@@ -1,7 +1,7 @@
 import numpy as np
 from enum import Enum
 import os
-import utils
+import utils.utils as utils
 
 __authors__ = "Anton Gochev, Jaro Habr, Yan Jiang, Samuel Kahn"
 __version__ = "XCS224u, Stanford, Winter 2021"

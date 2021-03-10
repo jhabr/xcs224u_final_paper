@@ -3,11 +3,11 @@ from enum import Enum
 import os
 import string
 import re
-from torch_color_describer import Encoder, Decoder, EncoderDecoder, ContextualColorDescriber
+from utils.torch_color_describer import Encoder, Decoder, EncoderDecoder, ContextualColorDescriber
 import torch
 import torch.nn as nn
 import utils
-from utils import START_SYMBOL, END_SYMBOL
+from utils.utils import START_SYMBOL, END_SYMBOL
 
 __authors__ = "Anton Gochev, Jaro Habr, Yan Jiang, Samuel Kahn"
 __version__ = "XCS224u, Stanford, Winter 2021"
