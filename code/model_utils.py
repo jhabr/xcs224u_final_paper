@@ -7,6 +7,8 @@ from transformers import (
     RobertaTokenizer, RobertaModel 
 )
 
+from utils import START_SYMBOL, END_SYMBOL
+
 __authors__ = "Anton Gochev, Jaro Habr, Yan Jiang, Samuel Kahn"
 __version__ = "XCS224u, Stanford, Winter 2021"
 
@@ -38,18 +40,13 @@ def extract_input_embeddings(colour_texts, model, tokenizer, strip_punct=True, s
 
     embeddings = model.get_input_embeddings()
     result = dict()
-    
-    positions = get_positions_to_remove(model)
         
     for ct in colour_texts:
         if strip_punct:
             ct = strip_punctuation(ct)
-        input_ids = torch.tensor(tokenizer.encode(ct, add_special_tokens=True)).unsqueeze(0)
+        input_ids = torch.tensor(tokenizer.encode(ct, add_special_tokens=False)).unsqueeze(0)
         input_tokens = tokenizer.convert_ids_to_tokens(input_ids[0])        
         vectors = embeddings(input_ids)
-        
-        input_tokens = input_tokens[positions[0]:positions[1]]        
-        vectors = vectors[0][positions[0]:positions[1]]            
         
         for i in range(len(input_tokens)):
             input_token = input_tokens[i]
@@ -90,19 +87,15 @@ def extract_contextual_embeddings(colour_texts, model, tokenizer, strip_punct=Tr
     embeddings = model.get_input_embeddings()
     result_embeddings = []
     result_vocab = dict()
-    
-    positions = get_positions_to_remove(model)
         
     for ct in colour_texts:
         if strip_punct == True:
             ct = strip_punctuation(ct)
-        input_ids = torch.tensor(tokenizer.encode(ct, add_special_tokens=True)).unsqueeze(0)
+        input_ids = torch.tensor(tokenizer.encode(ct, add_special_tokens=False)).unsqueeze(0)
         input_tokens = tokenizer.convert_ids_to_tokens(input_ids[0])        
-        outputs = get_model_outputs(model, input_ids)
-        
-        input_tokens = input_tokens[positions[0]:positions[1]]        
-        vectors = outputs.hidden_states[0][0][positions[0]:positions[1]]            
-        
+        outputs = get_model_outputs(model, input_ids)        
+        vectors = outputs.hidden_states[0]
+                
         for i in range(len(input_tokens)):
             if strip_symbols:
                 input_token = strip_special_symbols(input_tokens[i])
@@ -135,34 +128,37 @@ def get_model_outputs(model, input_ids):
         return model(input_ids=input_ids, output_hidden_states=True)
     
 
-
-def get_positions_to_remove(model):
+def tokenize_colour_description(s, tokenizer):
     """
     Parameters 
     ----------
     
+    s: string
+        The input raw text colour string
+
     model: huggingface transformer model
-        Huggingface trasnformer model to be used for determing the positions of tokens to be removed.
+        Huggingface trasnformer model to be used for extracting the tokens to be sequenced.
 
     Returns
     -------
-        A list containing the positions [position].
+        A list containing the tokenized sequence.
 
     """
+    s = strip_punctuation(s)
+    input_ids = torch.tensor(tokenizer.encode(s, add_special_tokens=False)).unsqueeze(0)
+    input_tokens = tokenizer.convert_ids_to_tokens(input_ids[0])
+    
+    result = []
+    for i in range(len(input_tokens)):
+        result.append(strip_special_symbols(input_tokens[i]))
 
-    positions = []
-    if type(model) is XLNetModel:
-        positions = [0, -2]
-
-    if type(model) is BertModel or type(model) is RobertaModel or type(model) is ElectraModel:    
-        positions = [1, -2]
-
-    return positions
+    return [START_SYMBOL] + result + [END_SYMBOL]
 
 
 def strip_punctuation(s):
     punc = s.maketrans(dict.fromkeys(string.punctuation))
     return s.translate(punc)
+
 
 def strip_special_symbols(s):
     symbols = ['_', '#', 'Ġ']
