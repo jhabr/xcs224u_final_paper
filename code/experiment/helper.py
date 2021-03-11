@@ -8,8 +8,12 @@ __version__ = "XCS224u, Stanford, Winter 2021"
 
 
 class EmbeddingType(Enum):
+    ALBERT = 'albert/en.embed.albert.base_uncased.vocab.768d.txt'
     BERT_TOKENS = 'bert/en.embed.bert.base_uncased.tokens.768d.txt'
     BERT = 'bert/en.embed.bert.base_uncased.vocab.768d.txt'
+    ELECTRA = 'electra/en.embed.electra.base_uncased.vocab.768d.txt'
+    ELMO = 'elmo/en.embed.elmo.vocab.768d.txt'
+    USE = 'use/en.embed.use.vocab.768d.txt'
     XLNET = 'xlnet/en.embed.xlnet_base_cased.vocab.768d.txt'
 
 
@@ -39,7 +43,7 @@ class Embedding:
 
         """
         embedding_dict = {}
-        file_name = os.path.join(Embedding.HOME, self.embedding.value)
+        file_name = os.path.join(Embedding.HOME, str(self.embedding.value))
 
         with open(file_name, encoding='utf8') as file:
             while True:
