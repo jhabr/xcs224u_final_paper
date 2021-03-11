@@ -107,9 +107,11 @@ def extract_contextual_embeddings(colour_texts, model, tokenizer, strip_punct=Tr
             if strip_symbols:
                 input_token = strip_special_symbols(input_tokens[i])
 
+            input_token = input_token + '_' + str(i)
+
             if input_token not in result_vocab:
                 result_vocab[input_token] = input_token
-            result_embeddings.append([input_token + '_' + str(i), vectors[0][i]])
+                result_embeddings.append([input_token, vectors[0][i]])
                     
     return result_embeddings, list(result_vocab.keys())
 
