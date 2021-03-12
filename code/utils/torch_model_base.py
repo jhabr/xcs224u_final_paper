@@ -4,7 +4,7 @@ import pickle
 from sklearn.model_selection import train_test_split
 import torch
 import torch.nn as nn
-import utils
+import utils.utils as utils
 
 __author__ = "Christopher Potts"
 __version__ = "CS224u, Stanford, Fall 2020"
