@@ -142,8 +142,7 @@ class BaselineDecoder(Decoder):
             embeddings.shape[1],
             embeddings.shape[2] + target_colors.shape[1]
         )
-        assert result.shape == expected.shape, \
-            "Expected shape {}; got shape {}".format(expected.shape, result.shape)
+        assert result.shape == expected.shape, f"Expected shape {expected.shape}; got shape {result.shape}"
 
         return result
 

@@ -7,12 +7,16 @@ from utils.utils import START_SYMBOL, END_SYMBOL, UNK_SYMBOL
 
 
 class ContextualEncoder(Encoder):
+    """
+    This class represents the system encode. It uses color representations extracted from pretrained models
+    like ResNet18.
+    """
     pass
 
 
 class ContextualDecoder(Decoder):
     """
-    This class represents the baseline system decoder.
+    This class represents the contextual system decoder.
     """
 
     def __init__(self, color_dim, *args, **kwargs):
@@ -41,8 +45,7 @@ class ContextualDecoder(Decoder):
             embeddings.shape[1],
             embeddings.shape[2] + target_colors.shape[1]
         )
-        assert result.shape == expected.shape, \
-            "Expected shape {}; got shape {}".format(expected.shape, result.shape)
+        assert result.shape == expected.shape, f"Expected shape {expected.shape}; got shape {result.shape}"
 
         return result
 
@@ -74,7 +77,7 @@ class ContextualEncoderDecoder(EncoderDecoder):
 class ContextualDescriber(ContextualColorDescriber):
     """
     Based on ContextualColorDescriber, this class bundles the encoder together with
-    the decoder in form of a BaselineEncoderDecoder class.
+    the decoder in form of a ContextualEncoderDecoder class.
     """
 
     def __init__(self, tokenizer: PreTrainedTokenizer, model: PreTrainedModel, early_stopping, freeze_embedding=False):
