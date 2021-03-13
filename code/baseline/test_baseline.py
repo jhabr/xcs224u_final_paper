@@ -9,14 +9,11 @@ def create_dev_data():
         vec_dim=2
     )
 
-    dev_colors_train, dev_colors_test, dev_words_train, dev_words_test = \
-        train_test_split(dev_color_seqs, dev_word_seqs)
-
-    return dev_vocab, dev_colors_train, dev_words_train, dev_colors_test, dev_words_test
+    return [dev_vocab] + train_test_split(dev_color_seqs, dev_word_seqs)
 
 
 if __name__ == '__main__':
-    dev_vocab, dev_colors_train, dev_tokens_train, dev_colors_test, dev_texts_test = \
+    dev_vocab, dev_colors_train, dev_colors_test, dev_tokens_train, dev_texts_test = \
         create_dev_data()
 
     embedding = BaselineEmbedding()
