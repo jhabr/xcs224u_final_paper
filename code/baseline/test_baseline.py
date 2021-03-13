@@ -16,7 +16,7 @@ def create_dev_data():
 
 
 if __name__ == '__main__':
-    dev_vocab, dev_colors_train, dev_tokens_train, dev_colors_test, dev_texts_test = \
+    dev_vocab, dev_colors_train, dev_colors_test, dev_tokens_train, dev_texts_test = \
         create_dev_data()
 
     embedding = BaselineEmbedding()
