@@ -1,13 +1,15 @@
-import baseline_utils as bu
+import baseline.helper as bh
 from enum import Enum
 import os
 import string
 import re
-from torch_color_describer import Encoder, Decoder, EncoderDecoder, ContextualColorDescriber
+
+from baseline import ROOT
+from utils.torch_color_describer import Encoder, Decoder, EncoderDecoder, ContextualColorDescriber
 import torch
 import torch.nn as nn
-import utils
-from utils import START_SYMBOL, END_SYMBOL
+import utils.utils as utils
+from utils.utils import START_SYMBOL, END_SYMBOL
 
 __authors__ = "Anton Gochev, Jaro Habr, Yan Jiang, Samuel Kahn"
 __version__ = "XCS224u, Stanford, Winter 2021"
@@ -69,7 +71,7 @@ class BaselineColorEncoder:
         """
 
         return [
-            bu.fourier_transform(bu.hls_to_hsv(hls_color)) for hls_color in hls_colors
+            bh.fourier_transform(bh.hls_to_hsv(hls_color)) for hls_color in hls_colors
         ]
 
 
@@ -84,8 +86,7 @@ class BaselineEmbedding:
     """
     This class is responsible for handling the embeddings of the baseline system.
     """
-
-    GLOVE_HOME = os.path.join('data', 'glove.6B')
+    GLOVE_HOME = os.path.join(ROOT, 'data', 'embeddings', 'glove.6B')
 
     def create_glove_embedding(self, vocab, dim=GloVeEmbedding.DIM_50):
         """

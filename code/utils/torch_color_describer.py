@@ -5,9 +5,9 @@ import numpy as np
 import torch
 import torch.nn as nn
 import torch.utils.data
-from torch_model_base import TorchModelBase
-import utils
-from utils import START_SYMBOL, END_SYMBOL, UNK_SYMBOL
+from utils.torch_model_base import TorchModelBase
+import utils.utils as utils
+from utils.utils import START_SYMBOL, END_SYMBOL, UNK_SYMBOL
 
 __author__ = "Christopher Potts"
 __version__ = "CS224u, Stanford, Fall 2020"
