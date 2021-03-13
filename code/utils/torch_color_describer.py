@@ -362,6 +362,9 @@ class ContextualColorDescriber(TorchModelBase):
             embed_dim=50,
             hidden_dim=50,
             freeze_embedding=False,
+            start_index=None,
+            end_index=None,
+            unk_index=None,
             **base_kwargs):
         """
         The primary interface to modeling contextual colors datasets.
@@ -432,9 +435,9 @@ class ContextualColorDescriber(TorchModelBase):
         self.index2word = dict(zip(range(self.vocab_size), self.vocab))
         self.embed_dim = embed_dim
         self.output_dim = self.vocab_size
-        self.start_index = self.vocab.index(START_SYMBOL)
-        self.end_index = self.vocab.index(END_SYMBOL)
-        self.unk_index = self.vocab.index(UNK_SYMBOL)
+        self.start_index = start_index if start_index else self.vocab.index(START_SYMBOL)
+        self.end_index = end_index if end_index else self.vocab.index(END_SYMBOL)
+        self.unk_index = unk_index if unk_index else self.vocab.index(UNK_SYMBOL)
         self.params += ['hidden_dim', 'embed_dim', 'embedding', 'freeze_embedding']
         self.loss = nn.CrossEntropyLoss()
 
