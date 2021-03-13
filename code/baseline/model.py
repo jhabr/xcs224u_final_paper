@@ -84,8 +84,11 @@ class BaselineEmbedding:
     """
     This class is responsible for handling the embeddings of the baseline system.
     """
-
-    GLOVE_HOME = os.path.join('data', 'embeddings', 'glove.6B')
+    current_path = os.path.dirname(os.path.abspath(__file__))
+    tokens = current_path.split("/")
+    current_dir_index = tokens.index('code')
+    ROOT = "/".join(tokens[:current_dir_index + 1])
+    GLOVE_HOME = os.path.join(ROOT, 'data', 'embeddings', 'glove.6B')
 
     def create_glove_embedding(self, vocab, dim=GloVeEmbedding.DIM_50):
         """
