@@ -6,8 +6,8 @@ from transformers import (
     ElectraTokenizer, ElectraModel,
     RobertaTokenizer, RobertaModel 
 )
-import utils
-from utils import START_SYMBOL, END_SYMBOL, UNK_SYMBOL
+import utils.utils as utils
+from utils.utils import START_SYMBOL, END_SYMBOL, UNK_SYMBOL
 
 __authors__ = "Anton Gochev, Jaro Habr, Yan Jiang, Samuel Kahn"
 __version__ = "XCS224u, Stanford, Winter 2021"
@@ -197,7 +197,7 @@ def tokenize_colour_description(s, tokenizer, include_position=False):
         A list containing the tokenized sequence.
 
     """
-    s = strip_punctuation(s)
+    s = strip_punctuation(s.lower())
     input_ids = torch.tensor(tokenizer.encode(s, add_special_tokens=False)).unsqueeze(0)
     input_tokens = tokenizer.convert_ids_to_tokens(input_ids[0])
     
