@@ -462,7 +462,7 @@ class ContextualColorDescriber(TorchModelBase):
 
         """
         self.color_dim = len(color_seqs[0][0])
-        word_seqs = [[self.word2index.get(w, self.unk_index) for w in seq]
+        word_seqs = [[self.word2index.get(w, self.unk_index) for w in seq] # ['<s>', 'B', 'A', 'B', 'A', '</s>'] => [0, 3, 2, 3, 2, 1]
                      for seq in word_seqs]
         ex_lengths = [len(seq) for seq in word_seqs]
         return ColorDataset(color_seqs, word_seqs, ex_lengths)
@@ -832,7 +832,7 @@ class ContextualColorDescriber(TorchModelBase):
 
 
 
-def create_example_dataset(group_size=100, vec_dim=2):
+def create_example_dataset(group_size=100, vec_dim=2, add_special_tokens=True):
     """
     Creates simple datasets in which the inputs are three-vector
     sequences and the outputs are simple character sequences, with
@@ -850,10 +850,17 @@ def create_example_dataset(group_size=100, vec_dim=2):
 
     groups = ((0.0, 0.2), (0.4, 0.6), (0.8, 1.0))
     vocab = ['<s>', '</s>', 'A', 'B', '$UNK']
-    seqs = [
-        ['<s>', 'A', '</s>'],
-        ['<s>', 'A', 'B', '</s>'],
-        ['<s>', 'B', 'A', 'B', 'A', '</s>']]
+    seqs = []
+    if add_special_tokens:
+        seqs = [
+            ['<s>', 'A', '</s>'],
+            ['<s>', 'A', 'B', '</s>'],
+            ['<s>', 'B', 'A', 'B', 'A', '</s>']]
+    else:
+        seqs = [
+            ['A'],
+            ['A', 'B'],
+            ['B', 'A', 'B', 'A']]
 
     color_seqs = []
     word_seqs = []
