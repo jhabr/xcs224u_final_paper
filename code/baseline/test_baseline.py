@@ -13,12 +13,8 @@ def create_dev_data():
 
 
 if __name__ == '__main__':
-    dev_vocab, dev_colors_train, dev_colors_test, dev_tokens_train, dev_texts_test = \
-        create_dev_data()
-
-    embedding = BaselineEmbedding()
-
-    dev_glove_embedding, dev_glove_vocab = embedding.create_glove_embedding(dev_vocab)
+    dev_vocab, dev_colors_train, dev_colors_test, dev_tokens_train, dev_tokens_test = create_dev_data()
+    dev_glove_embedding, dev_glove_vocab = BaselineEmbedding().create_glove_embedding(dev_vocab)
 
     dev_baseline_model = BaselineDescriber(
         dev_glove_vocab,
@@ -27,3 +23,6 @@ if __name__ == '__main__':
     )
 
     dev_baseline_model.fit(dev_colors_train, dev_tokens_train)
+
+    print()
+    print(dev_baseline_model.evaluate(dev_colors_test, dev_tokens_test))
