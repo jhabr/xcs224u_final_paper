@@ -1,10 +1,9 @@
+import numpy as np
 import torch
 from torch import nn
 from transformers import PreTrainedTokenizer, PreTrainedModel
-import numpy as np
 
 from utils.torch_color_describer import Decoder, ContextualColorDescriber, Encoder, EncoderDecoder, ColorDataset
-from utils.utils import START_SYMBOL, END_SYMBOL, UNK_SYMBOL
 
 
 class ContextualEncoder(Encoder):
@@ -32,19 +31,19 @@ class ContextualDecoder(Decoder):
             batch_first=True
         )
 
-    def get_embeddings(self, word_seqs, target_colors=None):
-        _, repeats = word_seqs.size()
+    def get_embeddings(self, input_ids, target_colors=None):
+        _, repeats = input_ids.size()
 
-        embeddings = self.__extract_embeddings(word_seqs)
+        embeddings = self.__extract_embeddings(input_ids)
 
         target_colors_reshaped = torch.repeat_interleave(
             target_colors, repeats, dim=0
-        ).view(*word_seqs.shape, -1)
+        ).view(*input_ids.shape, -1)
 
         result = torch.cat((embeddings, target_colors_reshaped), dim=-1)
 
         expected = torch.empty(
-            word_seqs.shape[0],
+            input_ids.shape[0],
             embeddings.shape[1],
             embeddings.shape[2] + target_colors.shape[1]
         )
@@ -58,9 +57,6 @@ class ContextualDecoder(Decoder):
         for ids in input_ids:
             input_ids = torch.LongTensor(ids).unsqueeze(0)
             attention_mask = torch.LongTensor([1] * len(ids)).unsqueeze(0)
-
-            # sequence = self.tokenizer.decode(ids)
-            # inputs = self.tokenizer(sequence, add_special_tokens=False, output_hidden_states=True, return_tensors="pt")
             output = self.model(input_ids=input_ids, attention_mask=attention_mask, output_hidden_states=True)
             embeddings.append(output.hidden_states[12].squeeze(0))
 
@@ -100,7 +96,6 @@ class ContextualDescriber(ContextualColorDescriber):
     def __init__(self, tokenizer: PreTrainedTokenizer, model: PreTrainedModel, early_stopping, freeze_embedding=False):
         self.tokenizer = tokenizer
         self.model = model
-        # self.__update_vocab__()
         self.vocab = self.tokenizer.vocab
 
         super().__init__(
@@ -108,42 +103,20 @@ class ContextualDescriber(ContextualColorDescriber):
             embed_dim=768,
             early_stopping=early_stopping,
             freeze_embedding=freeze_embedding,
-            # start_index=self.tokenizer.convert_tokens_to_ids(START_SYMBOL),
-            # end_index=self.tokenizer.convert_tokens_to_ids(END_SYMBOL),
-            # unk_index=self.tokenizer.convert_tokens_to_ids(UNK_SYMBOL)
             start_index=self.tokenizer.cls_token_id,
             end_index=self.tokenizer.sep_token_id,
             unk_index=self.tokenizer.unk_token_id
         )
 
-    # def __update_vocab__(self):
-    #     self.tokenizer.vocab[START_SYMBOL] = self.tokenizer.vocab_size + 1
-    #     self.tokenizer.vocab[END_SYMBOL] = self.tokenizer.vocab_size + 1
-    #     self.tokenizer.vocab[UNK_SYMBOL] = self.tokenizer.vocab_size + 1
-
     def build_dataset(self, color_seqs, word_seqs):
         self.color_dim = len(color_seqs[0][0])
-        input_ids = []
 
-        for sequence in word_seqs:
-            seq_input_ids = self.tokenizer.encode(sequence, add_special_tokens=True)
-            # seq_input_ids = [self.vocab[START_SYMBOL]] + seq_input_ids + [self.vocab[END_SYMBOL]]
-            input_ids.append(seq_input_ids)
-
-        # word_seqs = [[self.word2index.get(w, self.unk_index) for w in seq] for seq in word_seqs]
-
+        input_ids = [self.tokenizer.encode(sequence, add_special_tokens=True) for sequence in word_seqs]
         ex_lengths = [len(input_id) for input_id in input_ids]
 
         return ColorDataset(color_seqs, input_ids, ex_lengths)
 
     def _convert_predictions(self, pred):
-        # rep = []
-        # for i in pred:
-        #     i = i.item()
-        #     rep.append(self.tokenizer.convert_ids_to_tokens(i))
-        #     if i == self.end_index:
-        #         return rep
-        # return rep
         return self.tokenizer.decode(pred)
 
     def perplexities(self, color_seqs, word_seqs, device=None):
@@ -154,13 +127,6 @@ class ContextualDescriber(ContextualColorDescriber):
             scores.append(s)
         perp = [np.prod(s) ** (-1 / len(s)) for s in scores]
         return perp
-
-        # for pred, seq in zip(probs, word_seqs):
-        #     # Get the probabilities corresponding to the path `seq`:
-        #     s = np.array([t[self.word2index.get(w, self.unk_index)] for t, w in zip(pred, seq)])
-        #     scores.append(s)
-        # perp = [np.prod(s) ** (-1 / len(s)) for s in scores]
-        # return perp
 
     def build_graph(self):
         encoder = ContextualEncoder(
