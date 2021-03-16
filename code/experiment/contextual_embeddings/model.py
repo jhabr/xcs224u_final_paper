@@ -2,6 +2,7 @@ import numpy as np
 import torch
 from torch import nn
 from transformers import PreTrainedTokenizer, PreTrainedModel
+import time
 
 from utils.torch_color_describer import Decoder, ContextualColorDescriber, Encoder, EncoderDecoder, ColorDataset
 
@@ -26,7 +27,9 @@ class ContextualDecoder(Decoder):
     def get_embeddings(self, input_ids, target_colors=None):
         _, repeats = input_ids.size()
 
+        start = time.time()
         embeddings = self.__extract_embeddings(input_ids)
+        print(f"\n-- embeddings loaded in: {(time.time() - start) * 1000} ms")
 
         target_colors_reshaped = torch.repeat_interleave(
             target_colors, repeats, dim=0
