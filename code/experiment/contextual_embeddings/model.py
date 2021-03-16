@@ -112,6 +112,7 @@ class ContextualDescriber(ContextualColorDescriber):
         return ColorDataset(color_seqs, input_ids, ex_lengths)
 
     def _convert_predictions(self, pred):
+        print(f"\npredictions: ${self.tokenizer.decode(pred)}")
         return self.tokenizer.decode(pred)
 
     def perplexities(self, color_seqs, word_seqs, device=None):
