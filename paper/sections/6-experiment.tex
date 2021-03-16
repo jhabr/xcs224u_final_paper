@@ -1,5 +1,26 @@
 \section{Experiment}
 
+\subsection{Experiment Setup}
+In order to address our hypotheses we are planning to use different model compositions which are based on our target architecture.
+
+\bigbreak
+\textbf{Model for baseline}:
+Our implementation of the encoder-decoder architecture model based on assignment 4 (based on a single layer of RNN’s and GRU’s, Fourier color representation).
+
+\bigbreak
+\textbf{Models for hypothesis 1}:
+For hypothesis 1, we are using Fourier transformation encoded context colors with pre-trained and contextual embedding from the following transformer models: \texttt{BERT}, \texttt{XLNet}, \texttt{Electra}, \texttt{Roberta}.
+
+\bigbreak
+\textbf{Model for hypothesis 2}:
+For hypothesis 2, we use ResNet for contextual color representation while keeping the same model embeddings.
+
+\bigbreak
+\textbf{Model for hypothesis 3}:
+For hypothesis 3, we build on hypothesis 2 and combine different hidden layers of the transformer models. Namely, we concatenate the last four hidden layers, sum the last four hidden layers and extract the second-to-last hidden layer.
+
+\bigbreak
+what to write:
 \begin{itemize}
   \item explain how data and models work together for my experiments
   \item show which models were eveluated
@@ -8,11 +29,3 @@
   \item which metrics were used
   \item what are experimental outcomes
 \end{itemize}
-
-\begin{figure}[ht]
-\centering
-\includegraphics[scale=0.2]{assets/speaker_listener.pdf}
-\caption[Speaker - Listener relation]
-{Basic speaker listener image}
-\label{overview}
-\end{figure}
