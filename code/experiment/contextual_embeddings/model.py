@@ -6,14 +6,6 @@ from transformers import PreTrainedTokenizer, PreTrainedModel
 from utils.torch_color_describer import Decoder, ContextualColorDescriber, Encoder, EncoderDecoder, ColorDataset
 
 
-class ContextualEncoder(Encoder):
-    """
-    This class represents the system encode. It uses color representations extracted from pretrained models
-    like ResNet18.
-    """
-    pass
-
-
 class ContextualDecoder(Decoder):
     """
     This class represents the contextual system decoder.
@@ -129,7 +121,7 @@ class ContextualDescriber(ContextualColorDescriber):
         return perp
 
     def build_graph(self):
-        encoder = ContextualEncoder(
+        encoder = Encoder(
             color_dim=self.color_dim,
             hidden_dim=self.hidden_dim
         )
