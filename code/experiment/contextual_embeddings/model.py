@@ -57,7 +57,7 @@ class ContextualDecoder(Decoder):
 
 class ContextualEncoderDecoder(EncoderDecoder):
 
-    def __init__(self, encoder: ContextualEncoder, decoder: ContextualDecoder):
+    def __init__(self, encoder: Encoder, decoder: ContextualDecoder):
         super(ContextualEncoderDecoder, self).__init__(encoder, decoder)
 
     def forward(self, color_seqs, word_seqs, seq_lengths=None, hidden=None, targets=None):
