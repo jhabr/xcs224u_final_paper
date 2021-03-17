@@ -76,6 +76,9 @@ class TransformerEmbeddingDescriber(ContextualColorDescriber):
         self.tokenizer = tokenizer
         self.model = model
 
+    def get_extractor(self):
+        return self.embed_extractor
+
     def build_graph(self):
         encoder = Encoder(
             color_dim=self.color_dim,
@@ -136,6 +139,9 @@ class EmbeddingExtractor:
 
         self.embed_extractor = embed_extractor
 
+    def get_extractor_type(self):
+        return self.embed_extractor
+
     def extract(self, embedding, vocab, word_seqs, model, tokenizer):
         """
         Extracts embeddings in the decoder get_embedding() method.
@@ -175,10 +181,10 @@ class EmbeddingExtractor:
             return embedding(word_seqs)
         
         if self.embed_extractor == EmbeddingExtractorType.POSITIONAL:
-            return __extract_layer_embedding(vocab, word_seqs, model, tokenizer, layer_index=0)
+            return self.__extract_layer_embedding(vocab, word_seqs, model, tokenizer, layer_index=0)
 
         if self.embed_extractor == EmbeddingExtractorType.LAYER12:
-            return __extract_layer_embedding(vocab, word_seqs, model, tokenizer, layer_index=12)        
+            return self.__extract_layer_embedding(vocab, word_seqs, model, tokenizer, layer_index=12)        
 
     def __extract_layer_embedding(self, vocab, word_seqs, model, tokenizer, layer_index):
 
@@ -186,9 +192,9 @@ class EmbeddingExtractor:
         for ws in word_seqs:
             utterence = []
             for i in ws:
-                utterence.append(self.vocab[i])                
-            input_ids = torch.LongTensor(self.tokenizer.convert_tokens_to_ids(utterence)).unsqueeze(0)
-            outputs = self.model(input_ids=input_ids, output_hidden_states=True)
+                utterence.append(vocab[i])                
+            input_ids = torch.LongTensor(tokenizer.convert_tokens_to_ids(utterence)).unsqueeze(0)
+            outputs = model(input_ids=input_ids, output_hidden_states=True)
             embeddings.append(outputs.hidden_states[layer_index].squeeze(0))
 
         embeddings = torch.stack(embeddings)
