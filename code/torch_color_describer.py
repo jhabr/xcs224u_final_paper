@@ -5,9 +5,9 @@ import numpy as np
 import torch
 import torch.nn as nn
 import torch.utils.data
-from utils.torch_model_base import TorchModelBase
-import utils.utils as utils
-from utils.utils import START_SYMBOL, END_SYMBOL, UNK_SYMBOL
+from torch_model_base import TorchModelBase
+import utils
+from utils import START_SYMBOL, END_SYMBOL, UNK_SYMBOL
 
 __author__ = "Christopher Potts"
 __version__ = "CS224u, Stanford, Fall 2020"
@@ -86,15 +86,8 @@ class ColorDataset(torch.utils.data.Dataset):
         """
         color_seqs, word_seqs, ex_lengths = zip(*batch)
         # Conversion to Tensors:
-        try:
-            color_seqs = torch.FloatTensor(color_seqs)
-        except ValueError:
-            # Convultional Emeddings through error so need to do some tensor wrangling
-            color_seqs = torch.stack([torch.stack(color_seq) for color_seq in color_seqs],dim=1)
-            color_seqs = color_seqs.squeeze(2)
-            color_seqs = color_seqs.permute(1,0,2)
-
-
+        print(word_seqs.shape)
+        color_seqs = torch.FloatTensor(color_seqs)
         word_seqs = [torch.LongTensor(seq) for seq in word_seqs]
         ex_lengths = torch.LongTensor(ex_lengths)
         # Targets as next-word predictions:
@@ -466,12 +459,7 @@ class ContextualColorDescriber(TorchModelBase):
         ColorDataset
 
         """
-
-        if len(color_seqs[0][0]) != 1:
-            self.color_dim = len(color_seqs[0][0])
-        else:
-            self.color_dim = color_seqs[0][0].shape[1]
-       
+        self.color_dim = len(color_seqs[0][0])
         word_seqs = [[self.word2index.get(w, self.unk_index) for w in seq]
                      for seq in word_seqs]
         ex_lengths = [len(seq) for seq in word_seqs]
@@ -529,14 +517,8 @@ class ContextualColorDescriber(TorchModelBase):
 
         """
         device = self.device if device is None else torch.device(device)
-        try:
-            color_seqs = torch.FloatTensor(color_seqs)
-        except ValueError:
-            # Convultional Emeddings through error so need to do some tensor wrangling
-            color_seqs = torch.stack([torch.stack(color_seq) for color_seq in color_seqs],dim=1)
-            color_seqs = color_seqs.squeeze(2)
-            color_seqs = color_seqs.permute(1,0,2)
 
+        color_seqs = torch.FloatTensor(color_seqs)
         color_seqs = color_seqs.to(device)
 
         self.model.to(device)
@@ -766,14 +748,6 @@ class ContextualColorDescriber(TorchModelBase):
 
         """
         correct = 0
-        try:
-            color_seqs = torch.FloatTensor(color_seqs)
-        except ValueError:
-            # Convultional Emeddings through error so need to do some tensor wrangling
-            color_seqs = torch.stack([torch.stack(color_seq) for color_seq in color_seqs],dim=1)
-            color_seqs = color_seqs.squeeze(2)
-            color_seqs = color_seqs.permute(1,0,2)
-
         for color_seq, word_seq in zip(color_seqs, word_seqs):
             target_index = len(color_seq) - 1
             min_perp, pred, pred_index = self.listener_predict_one(
