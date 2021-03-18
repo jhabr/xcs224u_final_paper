@@ -1,17 +1,17 @@
-import baseline.helper as bh
-from enum import Enum
+import colorsys
 import os
-import string
 import re
+import string
+from enum import Enum
 
-from baseline import ROOT
-from utils.torch_color_describer import Encoder, Decoder, EncoderDecoder, ContextualColorDescriber
 import torch
 import torch.nn as nn
+
+import baseline.helper as bh
 import utils.utils as utils
+from baseline import ROOT
+from utils.torch_color_describer import Encoder, Decoder, EncoderDecoder, ContextualColorDescriber
 from utils.utils import START_SYMBOL, END_SYMBOL
-import colorsys
-import pickle
 
 __authors__ = "Anton Gochev, Jaro Habr, Yan Jiang, Samuel Kahn"
 __version__ = "XCS224u, Stanford, Winter 2021"
@@ -76,10 +76,12 @@ class BaselineColorEncoder:
             bh.fourier_transform(bh.hls_to_hsv(hls_color)) for hls_color in hls_colors
         ]
 
+
 class ConvolutionalColorEncoder:
     """
     This class is responsimble for loading HLS colors to other color formats.
     """
+
     def __init__(self, arch_type, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.arch_type = arch_type
@@ -91,20 +93,20 @@ class ConvolutionalColorEncoder:
         self.feature_extractor = torch.nn.Sequential(*list(self.model.children())[:-1])
 
     # Convert from HLS to RGB
-    def _convert_color_to_rgb(self,color):
-        rgb = colorsys.hls_to_rgb(color[0],color[1],color[2])
+    def _convert_color_to_rgb(self, color):
+        rgb = colorsys.hls_to_rgb(color[0], color[1], color[2])
         return rgb
 
-    def _convert_to_imagenet_input(self,hsl):
+    def _convert_to_imagenet_input(self, hsl):
         rgb = self._convert_color_to_rgb(hsl)
 
-        r = torch.full((224,224),rgb[0]).unsqueeze(2)
-        g = torch.full((224,224),rgb[1]).unsqueeze(2)
-        b = torch.full((224,224),rgb[2]).unsqueeze(2)
-        expanded_rep = torch.cat((r,g,b),2)
-        
-        expanded_rep = expanded_rep.permute(2,1,0).unsqueeze(0)
-        
+        r = torch.full((224, 224), rgb[0]).unsqueeze(2)
+        g = torch.full((224, 224), rgb[1]).unsqueeze(2)
+        b = torch.full((224, 224), rgb[2]).unsqueeze(2)
+        expanded_rep = torch.cat((r, g, b), 2)
+
+        expanded_rep = expanded_rep.permute(2, 1, 0).unsqueeze(0)
+
         return expanded_rep
 
     # def _convert_color_tuple(self,colors):
@@ -112,15 +114,13 @@ class ConvolutionalColorEncoder:
     #     return converted_colors
 
     def _extract_features_from_batch(self, examples):
-        if self.feature_extractor == None:
+        if self.feature_extractor is None:
             self._load_model_feature_extractor()
 
         output = self.feature_extractor(examples)
         shape = output.shape
-        output = output.reshape((shape[0],shape[1]))
+        output = output.reshape((shape[0], shape[1]))
         return output
-
-
 
     def encode_colors_from_convnet(self, hls_colors):
         """
@@ -137,7 +137,7 @@ class ConvolutionalColorEncoder:
             The HSV-converted and fourier transformed colors
         """
         # print(hls_colors)
-        
+
         image_embeddings = []
         with torch.no_grad():
             for hls_color in hls_colors:
@@ -145,11 +145,6 @@ class ConvolutionalColorEncoder:
                 conv_out = self._extract_features_from_batch(conv_input)
                 image_embeddings.append(conv_out)
         return image_embeddings
-
-
-
-
-
 
 
 class GloVeEmbedding(Enum):
