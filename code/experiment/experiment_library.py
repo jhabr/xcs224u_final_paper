@@ -12,7 +12,7 @@ class ExperimentLibrary:
         self.full_dataset = self.data_loader.load_full_dataset()
         self.bake_off_dataset = self.data_loader.load_bake_off_dataset()
 
-    def run_baseline(self, debug=False, run_bake_off=True):
+    def run_baseline(self, debug=False, decoder_drop_out=0.0, run_bake_off=True):
         print("-- Starting experiment BASELINE.")
         tokenizer = BaselineTokenizer()
         color_encoder = BaselineColorEncoder()
@@ -34,7 +34,8 @@ class ExperimentLibrary:
         glove_embedding, glove_vocab = embedding.create_glove_embedding(vocab)
 
         baseline_model = BaselineDescriber(
-            glove_vocab,
+            decoder_drop_out=decoder_drop_out,
+            vocab=glove_vocab,
             embedding=glove_embedding,
             early_stopping=True
         )

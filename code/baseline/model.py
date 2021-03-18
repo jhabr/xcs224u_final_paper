@@ -188,14 +188,16 @@ class BaselineDecoder(Decoder):
     This class represents the baseline system decoder.
     """
 
-    def __init__(self, color_dim, *args, **kwargs):
+    def __init__(self, color_dim, drop_out=0.0, *args, **kwargs):
         self.color_dim = color_dim
+        self.drop_out = drop_out
         super().__init__(*args, **kwargs)
 
         self.rnn = nn.GRU(
             input_size=self.embed_dim + self.color_dim,
             hidden_size=self.hidden_dim,
-            batch_first=True
+            batch_first=True,
+            dropout=self.drop_out
         )
 
     def get_embeddings(self, word_seqs, target_colors=None):
@@ -250,6 +252,10 @@ class BaselineDescriber(ContextualColorDescriber):
     the decoder in form of a BaselineEncoderDecoder class.
     """
 
+    def __init__(self, decoder_drop_out=0.0, *args, **kwargs):
+        self.decoder_drop_out = decoder_drop_out
+        super().__init__(*args, **kwargs)
+
     def build_graph(self):
         encoder = Encoder(
             color_dim=self.color_dim,
@@ -261,7 +267,8 @@ class BaselineDescriber(ContextualColorDescriber):
             embed_dim=self.embed_dim,
             embedding=self.embedding,
             hidden_dim=self.hidden_dim,
-            color_dim=self.color_dim
+            color_dim=self.color_dim,
+            drop_out=self.decoder_drop_out
         )
 
         return BaselineEncoderDecoder(encoder, decoder)
