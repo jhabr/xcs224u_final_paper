@@ -1,17 +1,17 @@
-import baseline.helper as bh
-from enum import Enum
+import colorsys
 import os
-import string
 import re
+import string
+from enum import Enum
 
-from baseline import ROOT
-from utils.torch_color_describer import Encoder, Decoder, EncoderDecoder, ContextualColorDescriber
 import torch
 import torch.nn as nn
+
+import baseline.helper as bh
 import utils.utils as utils
+from baseline import ROOT
+from utils.torch_color_describer import Encoder, Decoder, EncoderDecoder, ContextualColorDescriber
 from utils.utils import START_SYMBOL, END_SYMBOL
-import colorsys
-import pickle
 
 __authors__ = "Anton Gochev, Jaro Habr, Yan Jiang, Samuel Kahn"
 __version__ = "XCS224u, Stanford, Winter 2021"
@@ -52,7 +52,12 @@ class BaselineTokenizer:
         return [START_SYMBOL] + tokens + [END_SYMBOL]
 
 
-class BaselineColorEncoder:
+class BaseColorEncoder:
+    def encode_color_context(self, hls_colors):
+        raise NotImplementedError
+
+
+class BaselineColorEncoder(BaseColorEncoder):
     """
     This class is responsimble for encoding HLS colors to other color formats.
     """
@@ -75,6 +80,7 @@ class BaselineColorEncoder:
         return [
             bh.fourier_transform(bh.hls_to_hsv(hls_color)) for hls_color in hls_colors
         ]
+
 
 class ConvolutionalColorEncoder:
     """
@@ -159,6 +165,7 @@ class ConvolutionalColorEncoder:
 
 
 
+
 class GloVeEmbedding(Enum):
     DIM_50 = 50
     DIM_100 = 100
@@ -166,13 +173,18 @@ class GloVeEmbedding(Enum):
     DIM_300 = 300
 
 
-class BaselineEmbedding:
+class BaseEmbedding:
+    def create_embeddings(self, vocab, dim):
+        raise NotImplementedError
+
+
+class BaselineEmbedding(BaseEmbedding):
     """
     This class is responsible for handling the embeddings of the baseline system.
     """
     GLOVE_HOME = os.path.join(ROOT, 'data', 'embeddings', 'glove.6B')
 
-    def create_glove_embedding(self, vocab, dim=GloVeEmbedding.DIM_50):
+    def create_embeddings(self, vocab, dim=GloVeEmbedding.DIM_50):
         """
         Creates a GloVe embedding for the vocab with the selected dimension.
 
@@ -191,8 +203,27 @@ class BaselineEmbedding:
         """
         glove_base_filename = f"glove.6B.{dim.value}d.txt"
         glove = utils.glove2dict(os.path.join(BaselineEmbedding.GLOVE_HOME, glove_base_filename))
+        created_embeddings, created_vocab = utils.create_pretrained_embedding(glove, vocab)
 
-        return utils.create_pretrained_embedding(glove, vocab)
+        return created_embeddings, created_vocab
+
+
+class BaselineEncoder(Encoder):
+    """
+    This class represents the baseline system encoder.
+    """
+
+    def __init__(self, drop_out=0.0, *args, **kwargs):
+        self.drop_out = drop_out
+        super().__init__(*args, **kwargs)
+
+        self.rnn = nn.GRU(
+            input_size=self.color_dim,
+            hidden_size=self.hidden_dim,
+            batch_first=True,
+            dropout=self.drop_out,
+            num_layers=2 if self.drop_out > 0.0 else 1
+        )
 
 
 class BaselineDecoder(Decoder):
@@ -200,14 +231,17 @@ class BaselineDecoder(Decoder):
     This class represents the baseline system decoder.
     """
 
-    def __init__(self, color_dim, *args, **kwargs):
+    def __init__(self, color_dim, drop_out=0.0, *args, **kwargs):
         self.color_dim = color_dim
+        self.drop_out = drop_out
         super().__init__(*args, **kwargs)
 
         self.rnn = nn.GRU(
             input_size=self.embed_dim + self.color_dim,
             hidden_size=self.hidden_dim,
-            batch_first=True
+            batch_first=True,
+            dropout=self.drop_out,
+            num_layers=2 if self.drop_out > 0.0 else 1
         )
 
     def get_embeddings(self, word_seqs, target_colors=None):
@@ -262,18 +296,26 @@ class BaselineDescriber(ContextualColorDescriber):
     the decoder in form of a BaselineEncoderDecoder class.
     """
 
+    def __init__(self, encoder_drop_out=0.0, decoder_drop_out=0.0, *args, **kwargs):
+        self.encoder_drop_out = encoder_drop_out
+        self.decoder_drop_out = decoder_drop_out
+        self.device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+        super().__init__(*args, **kwargs)
+
     def build_graph(self):
-        encoder = Encoder(
+        encoder = BaselineEncoder(
+            drop_out=self.encoder_drop_out,
             color_dim=self.color_dim,
             hidden_dim=self.hidden_dim
         )
 
         decoder = BaselineDecoder(
+            color_dim=self.color_dim,
+            drop_out=self.decoder_drop_out,
             vocab_size=self.vocab_size,
             embed_dim=self.embed_dim,
             embedding=self.embedding,
-            hidden_dim=self.hidden_dim,
-            color_dim=self.color_dim
+            hidden_dim=self.hidden_dim
         )
 
         return BaselineEncoderDecoder(encoder, decoder)

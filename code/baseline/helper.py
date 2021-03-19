@@ -51,8 +51,14 @@ def hls_to_hsv(hls_color):
         A list with transformed h, s, v values
 
     """
-    h, l, s = hls_color
-    r, g, b = colorsys.hls_to_rgb(h, l, s)
+    r, g, b = hls_to_rgb(hls_color)
     h, s, v = colorsys.rgb_to_hsv(r, g, b)
 
     return [h, s, v]
+
+
+def hls_to_rgb(hls_color):
+    h, l, s = hls_color
+    r, g, b = colorsys.hls_to_rgb(h, l, s)
+
+    return [r, g, b]

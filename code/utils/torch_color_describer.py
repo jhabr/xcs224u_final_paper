@@ -238,7 +238,7 @@ class Decoder(nn.Module):
             embs = torch.nn.utils.rnn.pack_padded_sequence(
                 embs,
                 batch_first=True,
-                lengths=seq_lengths,
+                lengths=seq_lengths.cpu(),
                 enforce_sorted=False)
             # RNN forward:
             output, hidden = self.rnn(embs, hidden)
