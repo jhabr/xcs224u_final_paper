@@ -197,7 +197,7 @@ class BaselineEncoder(Encoder):
             hidden_size=self.hidden_dim,
             batch_first=True,
             dropout=self.drop_out,
-            num_layers=2
+            num_layers=2 if self.drop_out > 0.0 else 1
         )
 
 
@@ -216,7 +216,7 @@ class BaselineDecoder(Decoder):
             hidden_size=self.hidden_dim,
             batch_first=True,
             dropout=self.drop_out,
-            num_layers=2
+            num_layers=2 if self.drop_out > 0.0 else 1
         )
 
     def get_embeddings(self, word_seqs, target_colors=None):
