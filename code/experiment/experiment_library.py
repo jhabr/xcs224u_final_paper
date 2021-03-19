@@ -1,9 +1,7 @@
 import time
 
-from baseline.model import BaseColorEncoder, BaseEmbedding, BaselineDescriber, BaselineColorEncoder, \
-    BaselineEmbedding
-from experiment.data_preprocessor import DataPreprocessor, BaselineDataPreprocessor
-from experiment.vision import ConvolutionalBaseColorEncoder
+from baseline.model import BaseEmbedding, BaselineDescriber, BaselineEmbedding
+from experiment.data_preprocessor import DataPreprocessor, BaselineDataPreprocessor, VisionDataPreprocessor
 
 
 class Experiment:
@@ -12,13 +10,11 @@ class Experiment:
             identifier: int,
             name: str,
             model_class: type,
-            color_encoder: BaseColorEncoder,
             embedding: BaseEmbedding
     ):
         self.identifier = identifier
         self.name = name
         self.model_class = model_class
-        self.color_encoder = color_encoder
         self.embedding = embedding
 
     def run(self, data_preprocessor: DataPreprocessor, debug=False, run_bake_off=True):
@@ -64,7 +60,6 @@ class ExperimentLibrary:
             identifier=1,
             name="BASELINE - GloVe, Fourier",
             model_class=BaselineDescriber,
-            color_encoder=BaselineColorEncoder(),
             embedding=BaselineEmbedding()
         )
 
@@ -80,12 +75,11 @@ class ExperimentLibrary:
             identifier=2,
             name="VISION - GloVe, ResNet18",
             model_class=BaselineDescriber,
-            color_encoder=ConvolutionalBaseColorEncoder(),
             embedding=BaselineEmbedding()
         )
 
         experiment.run(
-            data_preprocessor=BaselineDataPreprocessor(),
+            data_preprocessor=VisionDataPreprocessor(),
             debug=debug,
             run_bake_off=True
         )
