@@ -1,4 +1,3 @@
-import colorsys
 import os
 import re
 import string
@@ -80,90 +79,6 @@ class BaselineColorEncoder(BaseColorEncoder):
         return [
             bh.fourier_transform(bh.hls_to_hsv(hls_color)) for hls_color in hls_colors
         ]
-
-
-class ConvolutionalColorEncoder:
-    """
-    This class is responsimble for loading HLS colors to other color formats.
-    """
-    def __init__(self, arch_type, fourier_embeddings, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.arch_type = arch_type
-        self.model = None
-        self.feature_extractor = None
-        self.fourier_embeddings = fourier_embeddings
-
-
-    def _load_model_feature_extractor(self):
-        self.model = torch.hub.load('pytorch/vision:v0.6.0', self.arch_type, pretrained=True)
-        self.feature_extractor = torch.nn.Sequential(*list(self.model.children())[:-1])
-
-    # Convert from HLS to RGB
-    def _convert_color_to_rgb(self,color):
-        rgb = colorsys.hls_to_rgb(color[0],color[1],color[2])
-        return rgb
-
-    def _convert_to_imagenet_input(self,hsl):
-        rgb = self._convert_color_to_rgb(hsl)
-
-        r = torch.full((224,224),rgb[0]).unsqueeze(2)
-        g = torch.full((224,224),rgb[1]).unsqueeze(2)
-        b = torch.full((224,224),rgb[2]).unsqueeze(2)
-        expanded_rep = torch.cat((r,g,b),2)
-        
-        expanded_rep = expanded_rep.permute(2,1,0).unsqueeze(0)
-        
-        return expanded_rep
-
-    # def _convert_color_tuple(self,colors):
-    #     converted_colors = [[_convert_to_imagenet_input(col) for col in cols] for cols in colors ] 
-    #     return converted_colors
-
-    def _extract_features_from_batch(self, examples):
-        if self.feature_extractor == None:
-            self._load_model_feature_extractor()
-
-        output = self.feature_extractor(examples)
-        shape = output.shape
-        output = output.reshape((shape[0],shape[1]))
-        return output
-
-
-
-    def encode_colors_from_convnet(self, hls_colors):
-        """
-        Encodes HLS colors to HSV colors and performs a discrete fourier transform.
-
-        Parameters
-        ----------
-        hls_colors: list
-            The color context in HLS format
-
-        Returns
-        -------
-        list
-            The HSV-converted and fourier transformed colors
-        """
-        # print(hls_colors)
-        
-        image_embeddings = []
-        with torch.no_grad():
-            for hls_color in hls_colors:
-                conv_input = self._convert_to_imagenet_input(hls_color)
-                conv_out = self._extract_features_from_batch(conv_input)
-                if self.fourier_embeddings == True:
-                    fourier_emb = torch.tensor(bh.fourier_transform(bh.hls_to_hsv(hls_color))).unsqueeze(0)
-                    image_embeddings.append(torch.cat((fourier_emb,conv_out),dim=1))
-                else:
-                    image_embeddings.append(conv_out)
-
-        return image_embeddings
-
-
-
-
-
-
 
 
 class GloVeEmbedding(Enum):

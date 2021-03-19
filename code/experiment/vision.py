@@ -15,11 +15,12 @@ class ConvolutionalColorEncoder(BaseColorEncoder):
     This class is responsimble for loading HLS colors to other color formats.
     """
 
-    def __init__(self, arch_type=ArchitectureType.ResNet18, *args, **kwargs):
+    def __init__(self, fourier_embeddings, arch_type=ArchitectureType.ResNet18, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.arch_type = arch_type
         self.model = None
         self.feature_extractor = None
+        self.fourier_embeddings = fourier_embeddings
 
     def __load_model_feature_extractor(self):
         self.model = torch.hub.load('pytorch/vision:v0.6.0', str(self.arch_type.value), pretrained=True)
@@ -67,6 +68,11 @@ class ConvolutionalColorEncoder(BaseColorEncoder):
             for hls_color in hls_colors:
                 conv_input = self.__convert_to_imagenet_input(hls_color)
                 conv_out = self.__extract_features_from_batch(conv_input)
-                image_embeddings.append(conv_out)
+
+                if self.fourier_embeddings:
+                    fourier_emb = torch.tensor(bh.fourier_transform(bh.hls_to_hsv(hls_color))).unsqueeze(0)
+                    image_embeddings.append(torch.cat((fourier_emb, conv_out), dim=1))
+                else:
+                    image_embeddings.append(conv_out)
 
         return image_embeddings
