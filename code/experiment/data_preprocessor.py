@@ -61,5 +61,5 @@ class BaselineDataPreprocessor(DataPreprocessor):
 
 
 class VisionDataPreprocessor(BaselineDataPreprocessor):
-    def __init__(self):
-        super().__init__(color_encoder=ConvolutionalColorEncoder())
+    def __init__(self, fourier_embeddings=False):
+        super().__init__(color_encoder=ConvolutionalColorEncoder(fourier_embeddings=fourier_embeddings))

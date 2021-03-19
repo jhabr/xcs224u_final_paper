@@ -83,3 +83,18 @@ class ExperimentLibrary:
             debug=debug,
             run_bake_off=True
         )
+
+    @staticmethod
+    def run_baseline_vision(debug=False):
+        experiment = Experiment(
+            identifier=16,
+            name="VISION - GloVe, ResNet18 + Fourier",
+            model_class=BaselineDescriber,
+            embedding=BaselineEmbedding()
+        )
+
+        experiment.run(
+            data_preprocessor=VisionDataPreprocessor(fourier_embeddings=True),
+            debug=debug,
+            run_bake_off=True
+        )
