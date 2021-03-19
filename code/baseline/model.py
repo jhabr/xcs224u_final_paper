@@ -52,7 +52,12 @@ class BaselineTokenizer:
         return [START_SYMBOL] + tokens + [END_SYMBOL]
 
 
-class BaselineColorEncoder:
+class BaseColorEncoder:
+    def encode_color_context(self, hls_colors):
+        raise NotImplementedError
+
+
+class BaselineColorEncoder(BaseColorEncoder):
     """
     This class is responsimble for encoding HLS colors to other color formats.
     """
@@ -77,76 +82,6 @@ class BaselineColorEncoder:
         ]
 
 
-class ConvolutionalColorEncoder:
-    """
-    This class is responsimble for loading HLS colors to other color formats.
-    """
-
-    def __init__(self, arch_type, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.arch_type = arch_type
-        self.model = None
-        self.feature_extractor = None
-
-    def _load_model_feature_extractor(self):
-        self.model = torch.hub.load('pytorch/vision:v0.6.0', self.arch_type, pretrained=True)
-        self.feature_extractor = torch.nn.Sequential(*list(self.model.children())[:-1])
-
-    # Convert from HLS to RGB
-    def _convert_color_to_rgb(self, color):
-        rgb = colorsys.hls_to_rgb(color[0], color[1], color[2])
-        return rgb
-
-    def _convert_to_imagenet_input(self, hsl):
-        rgb = self._convert_color_to_rgb(hsl)
-
-        r = torch.full((224, 224), rgb[0]).unsqueeze(2)
-        g = torch.full((224, 224), rgb[1]).unsqueeze(2)
-        b = torch.full((224, 224), rgb[2]).unsqueeze(2)
-        expanded_rep = torch.cat((r, g, b), 2)
-
-        expanded_rep = expanded_rep.permute(2, 1, 0).unsqueeze(0)
-
-        return expanded_rep
-
-    # def _convert_color_tuple(self,colors):
-    #     converted_colors = [[_convert_to_imagenet_input(col) for col in cols] for cols in colors ] 
-    #     return converted_colors
-
-    def _extract_features_from_batch(self, examples):
-        if self.feature_extractor is None:
-            self._load_model_feature_extractor()
-
-        output = self.feature_extractor(examples)
-        shape = output.shape
-        output = output.reshape((shape[0], shape[1]))
-        return output
-
-    def encode_colors_from_convnet(self, hls_colors):
-        """
-        Encodes HLS colors to HSV colors and performs a discrete fourier transform.
-
-        Parameters
-        ----------
-        hls_colors: list
-            The color context in HLS format
-
-        Returns
-        -------
-        list
-            The HSV-converted and fourier transformed colors
-        """
-        # print(hls_colors)
-
-        image_embeddings = []
-        with torch.no_grad():
-            for hls_color in hls_colors:
-                conv_input = self._convert_to_imagenet_input(hls_color)
-                conv_out = self._extract_features_from_batch(conv_input)
-                image_embeddings.append(conv_out)
-        return image_embeddings
-
-
 class GloVeEmbedding(Enum):
     DIM_50 = 50
     DIM_100 = 100
@@ -154,13 +89,18 @@ class GloVeEmbedding(Enum):
     DIM_300 = 300
 
 
-class BaselineEmbedding:
+class BaseEmbedding:
+    def create_embeddings(self, vocab, dim):
+        raise NotImplementedError
+
+
+class BaselineEmbedding(BaseEmbedding):
     """
     This class is responsible for handling the embeddings of the baseline system.
     """
     GLOVE_HOME = os.path.join(ROOT, 'data', 'embeddings', 'glove.6B')
 
-    def create_glove_embedding(self, vocab, dim=GloVeEmbedding.DIM_50):
+    def create_embeddings(self, vocab, dim=GloVeEmbedding.DIM_50):
         """
         Creates a GloVe embedding for the vocab with the selected dimension.
 
@@ -179,8 +119,9 @@ class BaselineEmbedding:
         """
         glove_base_filename = f"glove.6B.{dim.value}d.txt"
         glove = utils.glove2dict(os.path.join(BaselineEmbedding.GLOVE_HOME, glove_base_filename))
+        created_embeddings, created_vocab = utils.create_pretrained_embedding(glove, vocab)
 
-        return utils.create_pretrained_embedding(glove, vocab)
+        return created_embeddings, created_vocab
 
 
 class BaselineEncoder(Encoder):
@@ -197,7 +138,7 @@ class BaselineEncoder(Encoder):
             hidden_size=self.hidden_dim,
             batch_first=True,
             dropout=self.drop_out,
-            num_layers=2
+            num_layers=2 if self.drop_out > 0.0 else 1
         )
 
 
@@ -216,7 +157,7 @@ class BaselineDecoder(Decoder):
             hidden_size=self.hidden_dim,
             batch_first=True,
             dropout=self.drop_out,
-            num_layers=2
+            num_layers=2 if self.drop_out > 0.0 else 1
         )
 
     def get_embeddings(self, word_seqs, target_colors=None):

@@ -10,11 +10,11 @@ class DataLoader:
 
     def load_full_dataset(self):
         file_name = os.path.join(ROOT, "data", "colors", "filteredCorpus.csv")
-        return self.__read_data__(file_name, split=True)
+        return self.__read_data(file_name, split=True)
 
     def load_bake_off_dataset(self):
         file_name = os.path.join(ROOT, "data", "colors", "cs224u-colors-bakeoff-data.csv")
-        return self.__read_data__(file_name, split=False)
+        return self.__read_data(file_name, split=False)
 
     def load_dev_dataset_with_vocab(self):
         dev_colors, dev_text, dev_vocab = create_example_dataset(
@@ -24,7 +24,7 @@ class DataLoader:
 
         return [dev_vocab] + train_test_split(dev_colors, dev_text)
 
-    def __read_data__(self, file_name, split=False):
+    def __read_data(self, file_name, split=False):
         corpus = ColorsCorpusReader(
             file_name,
             word_count=None,
