@@ -1,3 +1,5 @@
+import time
+
 from baseline.model import BaselineTokenizer, BaselineColorEncoder, BaseColorEncoder
 from experiment.data_loader import DataLoader
 from experiment.vision import ConvolutionalColorEncoder
@@ -35,10 +37,16 @@ class BaselineDataPreprocessor(DataPreprocessor):
 
         raw_colors_train, raw_colors_test, raw_texts_train, raw_texts_test = self.full_dataset
 
+        start = time.time()
+        print("- Extracting color representations for training data...")
         colors_train = [self.color_encoder.encode_color_context(colors) for colors in raw_colors_train]
+        print(f"\n-- Extraction time: {(time.time() - start)} s")
         tokens_train = [self.tokenizer.encode(text) for text in raw_texts_train]
 
+        start = time.time()
+        print("- Extracting color representations for test data...")
         colors_test = [self.color_encoder.encode_color_context(colors) for colors in raw_colors_test]
+        print(f"\n-- Extraction time: {(time.time() - start)} s")
         tokens_test = [self.tokenizer.encode(text) for text in raw_texts_test]
 
         vocab = sorted({word for tokens in tokens_train for word in tokens})

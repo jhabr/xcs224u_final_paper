@@ -1,10 +1,9 @@
-import time
 from enum import Enum
 
 import torch
 
-from baseline.model import BaseColorEncoder
 import baseline.helper as bh
+from baseline.model import BaseColorEncoder
 
 
 class ArchitectureType(Enum):
@@ -65,9 +64,6 @@ class ConvolutionalColorEncoder(BaseColorEncoder):
 
         image_embeddings = []
 
-        print("- Extracting color representations...")
-        start = time.time()
-
         with torch.no_grad():
             for hls_color in hls_colors:
                 conv_input = self.__convert_to_imagenet_input(hls_color)
@@ -78,7 +74,5 @@ class ConvolutionalColorEncoder(BaseColorEncoder):
                     image_embeddings.append(torch.cat((fourier_emb, conv_out), dim=1))
                 else:
                     image_embeddings.append(conv_out)
-
-        print(f"\n-- Extraction time: {(time.time() - start)} s")
 
         return image_embeddings
