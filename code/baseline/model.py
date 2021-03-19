@@ -183,6 +183,24 @@ class BaselineEmbedding:
         return utils.create_pretrained_embedding(glove, vocab)
 
 
+class BaselineEncoder(Encoder):
+    """
+    This class represents the baseline system encoder.
+    """
+
+    def __init__(self, drop_out=0.0, *args, **kwargs):
+        self.drop_out = drop_out
+        super().__init__(*args, **kwargs)
+
+        self.rnn = nn.GRU(
+            input_size=self.color_dim,
+            hidden_size=self.hidden_dim,
+            batch_first=True,
+            dropout=self.drop_out,
+            num_layers=2
+        )
+
+
 class BaselineDecoder(Decoder):
     """
     This class represents the baseline system decoder.
@@ -197,7 +215,8 @@ class BaselineDecoder(Decoder):
             input_size=self.embed_dim + self.color_dim,
             hidden_size=self.hidden_dim,
             batch_first=True,
-            dropout=self.drop_out
+            dropout=self.drop_out,
+            num_layers=2
         )
 
     def get_embeddings(self, word_seqs, target_colors=None):
@@ -252,23 +271,25 @@ class BaselineDescriber(ContextualColorDescriber):
     the decoder in form of a BaselineEncoderDecoder class.
     """
 
-    def __init__(self, decoder_drop_out=0.0, *args, **kwargs):
+    def __init__(self, encoder_drop_out=0.0, decoder_drop_out=0.0, *args, **kwargs):
+        self.encoder_drop_out = encoder_drop_out
         self.decoder_drop_out = decoder_drop_out
         super().__init__(*args, **kwargs)
 
     def build_graph(self):
-        encoder = Encoder(
+        encoder = BaselineEncoder(
+            drop_out=self.encoder_drop_out,
             color_dim=self.color_dim,
             hidden_dim=self.hidden_dim
         )
 
         decoder = BaselineDecoder(
+            color_dim=self.color_dim,
+            drop_out=self.decoder_drop_out,
             vocab_size=self.vocab_size,
             embed_dim=self.embed_dim,
             embedding=self.embedding,
-            hidden_dim=self.hidden_dim,
-            color_dim=self.color_dim,
-            drop_out=self.decoder_drop_out
+            hidden_dim=self.hidden_dim
         )
 
         return BaselineEncoderDecoder(encoder, decoder)
