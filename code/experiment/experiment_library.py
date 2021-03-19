@@ -24,9 +24,9 @@ class Experiment:
         print(f"-- Starting experiment {self.identifier}: {self.name}.")
 
         if debug:
-            vocab, train_data, test_data = data_preprocessor.prepare_dev_data()
+            vocab, colors_train, tokens_train, colors_test, tokens_test = data_preprocessor.prepare_dev_data()
         else:
-            vocab, train_data, test_data = data_preprocessor.prepare_training_data()
+            vocab, colors_train, tokens_train, colors_test, tokens_test = data_preprocessor.prepare_training_data()
 
         created_embeddings, created_vocab = self.embedding.create_embeddings(vocab)
 
@@ -38,11 +38,11 @@ class Experiment:
 
         print("-- Training model...")
         start = time.time()
-        model.fit(train_data[0], train_data[1])
+        model.fit(colors_train, tokens_train)
         print(f"\n-- Training time: {(time.time() - start)} s")
         print("-- Evaluating model...")
         start = time.time()
-        print(model.evaluate(test_data[0], test_data[0]))
+        print(model.evaluate(colors_test, tokens_test))
         print(f"-- Evaluation time: {(time.time() - start)} s")
 
         if not debug and run_bake_off:

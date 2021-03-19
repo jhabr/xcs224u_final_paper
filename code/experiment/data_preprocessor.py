@@ -13,7 +13,7 @@ class DataPreprocessor:
 
     def prepare_dev_data(self):
         vocab, colors_train, colors_test, tokens_train, tokens_test = self.dev_dataset
-        return vocab, (colors_train, tokens_train), (colors_test, tokens_test)
+        return vocab, colors_train, tokens_train, colors_test, tokens_test
 
     def prepare_training_data(self):
         raise NotImplementedError
@@ -41,7 +41,7 @@ class BaselineDataPreprocessor(DataPreprocessor):
         vocab = sorted({word for tokens in tokens_train for word in tokens})
         vocab += [UNK_SYMBOL]
 
-        return vocab, (colors_train, tokens_train), (colors_test, tokens_test)
+        return vocab, colors_train, tokens_train, colors_test, tokens_test
 
     def prepare_bake_off_data(self):
         raw_colors, raw_texts = self.bake_off_dataset
