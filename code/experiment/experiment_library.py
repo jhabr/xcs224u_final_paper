@@ -85,7 +85,7 @@ class ExperimentLibrary:
         )
 
     @staticmethod
-    def run_baseline_vision(debug=False):
+    def run_baseline_vision_with_fourier(debug=False):
         experiment = Experiment(
             identifier=16,
             name="VISION - GloVe, ResNet18 + Fourier",
