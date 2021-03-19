@@ -21,8 +21,8 @@ class ConvolutionalBaseColorEncoder(BaseColorEncoder):
         self.model = None
         self.feature_extractor = None
 
-    def _load_model_feature_extractor(self):
-        self.model = torch.hub.load('pytorch/vision:v0.6.0', self.arch_type, pretrained=True)
+    def __load_model_feature_extractor(self):
+        self.model = torch.hub.load('pytorch/vision:v0.6.0', str(self.arch_type.value), pretrained=True)
         self.feature_extractor = torch.nn.Sequential(*list(self.model.children())[:-1])
 
     def __convert_to_imagenet_input(self, hls_color):
@@ -39,7 +39,7 @@ class ConvolutionalBaseColorEncoder(BaseColorEncoder):
 
     def __extract_features_from_batch(self, examples):
         if self.feature_extractor is None:
-            self._load_model_feature_extractor()
+            self.__load_model_feature_extractor()
 
         output = self.feature_extractor(examples)
         shape = output.shape
