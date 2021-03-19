@@ -1,7 +1,13 @@
+from enum import Enum
+
 import torch
 
 from baseline.model import BaseColorEncoder
 import baseline.helper as bh
+
+
+class ArchitectureType(Enum):
+    ResNet18 = "resnet18"
 
 
 class ConvolutionalBaseColorEncoder(BaseColorEncoder):
@@ -9,7 +15,7 @@ class ConvolutionalBaseColorEncoder(BaseColorEncoder):
     This class is responsimble for loading HLS colors to other color formats.
     """
 
-    def __init__(self, arch_type, *args, **kwargs):
+    def __init__(self, arch_type=ArchitectureType.ResNet18, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.arch_type = arch_type
         self.model = None

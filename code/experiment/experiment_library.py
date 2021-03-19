@@ -3,6 +3,7 @@ import time
 from baseline.model import BaseColorEncoder, BaseEmbedding, BaselineDescriber, BaselineColorEncoder, \
     BaselineEmbedding
 from experiment.data_preprocessor import DataPreprocessor, BaselineDataPreprocessor
+from experiment.vision import ConvolutionalBaseColorEncoder
 
 
 class Experiment:
@@ -21,7 +22,7 @@ class Experiment:
         self.embedding = embedding
 
     def run(self, data_preprocessor: DataPreprocessor, debug=False, run_bake_off=True):
-        print(f"-- Starting experiment {self.identifier}: {self.name}.")
+        print(f"STARTING experiment {self.identifier}: {self.name}.")
 
         if debug:
             vocab, colors_train, tokens_train, colors_test, tokens_test = data_preprocessor.prepare_dev_data()
@@ -36,23 +37,23 @@ class Experiment:
             early_stopping=True
         )
 
-        print("-- Training model...")
+        print("- 1. Training model...")
         start = time.time()
         model.fit(colors_train, tokens_train)
         print(f"\n-- Training time: {(time.time() - start)} s")
-        print("-- Evaluating model...")
+        print("- 2. Evaluating model...")
         start = time.time()
         print(model.evaluate(colors_test, tokens_test))
         print(f"-- Evaluation time: {(time.time() - start)} s")
 
         if not debug and run_bake_off:
             colors, tokens = data_preprocessor.prepare_bake_off_data()
-            print("-- Bake-Off...")
+            print("- 3. Bake-Off...")
             start = time.time()
             print(model.evaluate(colors, tokens))
             print(f"-- Bake-Off time: {(time.time() - start)} s")
 
-        print("-- Done experiment BASELINE.")
+        print(f"DONE experiment {self.identifier}: {self.name}.")
 
 
 class ExperimentLibrary:
@@ -61,9 +62,25 @@ class ExperimentLibrary:
     def run_baseline(debug=False):
         experiment = Experiment(
             identifier=1,
-            name="BASELINE",
+            name="BASELINE - GloVe, Fourier",
             model_class=BaselineDescriber,
             color_encoder=BaselineColorEncoder(),
+            embedding=BaselineEmbedding()
+        )
+
+        experiment.run(
+            data_preprocessor=BaselineDataPreprocessor(),
+            debug=debug,
+            run_bake_off=True
+        )
+
+    @staticmethod
+    def run_baseline_vision(debug=False):
+        experiment = Experiment(
+            identifier=2,
+            name="VISION - GloVe, ResNet18",
+            model_class=BaselineDescriber,
+            color_encoder=ConvolutionalBaseColorEncoder(),
             embedding=BaselineEmbedding()
         )
 
