@@ -72,7 +72,7 @@ class ExperimentLibrary:
     @staticmethod
     def run_baseline_vision(debug=False):
         experiment = Experiment(
-            identifier=2,
+            identifier=11,
             name="VISION - GloVe, ResNet18",
             model_class=BaselineDescriber,
             embedding=BaselineEmbedding()
