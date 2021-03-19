@@ -19,3 +19,9 @@ https://www.w3schools.com/colors/colors_hsl.asp
 $ conda install -n nlu transformers
 ```
 
+## Azure
+### Export variables
+
+```bash
+$ export PYTHONPATH=/[path to project]/3-xcs224u_final_paper/code
+```
