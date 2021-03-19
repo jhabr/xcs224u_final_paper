@@ -274,6 +274,7 @@ class BaselineDescriber(ContextualColorDescriber):
     def __init__(self, encoder_drop_out=0.0, decoder_drop_out=0.0, *args, **kwargs):
         self.encoder_drop_out = encoder_drop_out
         self.decoder_drop_out = decoder_drop_out
+        self.device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
         super().__init__(*args, **kwargs)
 
     def build_graph(self):
