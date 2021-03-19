@@ -1,6 +1,6 @@
 import time
 
-from baseline.model import BaselineTokenizer, BaseColorEncoder, BaseEmbedding, BaselineDescriber, BaselineColorEncoder, \
+from baseline.model import BaseColorEncoder, BaseEmbedding, BaselineDescriber, BaselineColorEncoder, \
     BaselineEmbedding
 from experiment.data_preprocessor import DataPreprocessor, BaselineDataPreprocessor
 
