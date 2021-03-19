@@ -1,6 +1,6 @@
 from baseline.model import BaselineTokenizer, BaselineColorEncoder, BaseColorEncoder
 from experiment.data_loader import DataLoader
-from experiment.vision import ConvolutionalBaseColorEncoder
+from experiment.vision import ConvolutionalColorEncoder
 from utils.utils import UNK_SYMBOL
 
 
@@ -62,4 +62,4 @@ class BaselineDataPreprocessor(DataPreprocessor):
 
 class VisionDataPreprocessor(BaselineDataPreprocessor):
     def __init__(self):
-        super().__init__(color_encoder=ConvolutionalBaseColorEncoder())
+        super().__init__(color_encoder=ConvolutionalColorEncoder())

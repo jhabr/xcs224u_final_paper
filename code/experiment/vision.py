@@ -10,7 +10,7 @@ class ArchitectureType(Enum):
     ResNet18 = "resnet18"
 
 
-class ConvolutionalBaseColorEncoder(BaseColorEncoder):
+class ConvolutionalColorEncoder(BaseColorEncoder):
     """
     This class is responsimble for loading HLS colors to other color formats.
     """
