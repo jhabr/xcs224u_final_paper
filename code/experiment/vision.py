@@ -15,7 +15,7 @@ class ConvolutionalColorEncoder(BaseColorEncoder):
     This class is responsimble for loading HLS colors to other color formats.
     """
 
-    def __init__(self, fourier_embeddings, arch_type=ArchitectureType.ResNet18, *args, **kwargs):
+    def __init__(self, fourier_embeddings=False, arch_type=ArchitectureType.ResNet18, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.arch_type = arch_type
         self.model = None

@@ -57,7 +57,7 @@ class BaselineDataPreprocessor(DataPreprocessor):
 
     def __check_attributes(self):
         if self.tokenizer is None or self.color_encoder is None:
-            raise AttributeError("Tokenier and/or color_encoder is None.")
+            raise AttributeError("Tokenizer and/or color_encoder is None.")
 
 
 class VisionDataPreprocessor(BaselineDataPreprocessor):
