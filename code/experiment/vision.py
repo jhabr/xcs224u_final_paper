@@ -48,7 +48,7 @@ class ConvolutionalColorEncoder(BaseColorEncoder):
 
     def encode_color_context(self, hls_colors):
         """
-        Encodes HLS colors to HSV colors and performs a discrete fourier transform.
+        Extracts colors from vision model.
 
         Parameters
         ----------
@@ -58,7 +58,7 @@ class ConvolutionalColorEncoder(BaseColorEncoder):
         Returns
         -------
         list
-            The HSV-converted and fourier transformed colors
+            The extracted color representations.
         """
 
         image_embeddings = []
