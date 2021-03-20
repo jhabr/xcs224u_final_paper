@@ -48,6 +48,7 @@ class TransformerEmbeddingDecoder(Decoder):
     def __init__(self, color_dim, vocab, transformer=TransformerType.BERT, extractor=EmbeddingExtractorType.STATIC, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
+        self.device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
         self.color_dim = color_dim
         self.vocab = vocab
         self.transformer = transformer
@@ -74,8 +75,6 @@ class TransformerEmbeddingDecoder(Decoder):
 
     def get_embeddings(self, word_seqs, target_colors=None):
         _, repeats = word_seqs.size()
-
-        device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
         
         embeddings = self.__extract_embeddings(word_seqs)
 
@@ -83,8 +82,7 @@ class TransformerEmbeddingDecoder(Decoder):
             target_colors, repeats, dim=0
         ).view(*word_seqs.shape, -1)
 
-        result = torch.cat((embeddings, target_colors_reshaped), dim=-1)
-        result.to(device)
+        result = torch.cat((embeddings, target_colors_reshaped), dim=-1).to(self.device)
 
         expected = torch.empty(
             word_seqs.shape[0],
@@ -97,6 +95,9 @@ class TransformerEmbeddingDecoder(Decoder):
         return result
 
     def __select_model(self):
+        model = None
+        tokenizer = None
+        
         if self.transformer == TransformerType.BERT:
             tokenizer = BertTokenizer.from_pretrained('bert-base-cased')
             model = BertModel.from_pretrained('bert-base-cased')
@@ -140,11 +141,13 @@ class TransformerEmbeddingDecoder(Decoder):
             utterence = []
             for i in ws:
                 utterence.append(self.vocab[i])                
-            input_ids = torch.LongTensor(self.tokenizer.convert_tokens_to_ids(utterence)).unsqueeze(0)
+            input_ids = torch.LongTensor(self.tokenizer.convert_tokens_to_ids(utterence)).unsqueeze(0).to(self.device)
             outputs = self.model(input_ids=input_ids, output_hidden_states=True)
             embeddings.append(outputs.hidden_states[layer_index].squeeze(0))
-
-        return torch.stack(embeddings)
+        
+        embeddings = torch.stack(embeddings).to(self.device)
+        
+        return embeddings
 
 
 class TransformerEmbeddingDescriber(ContextualColorDescriber):
