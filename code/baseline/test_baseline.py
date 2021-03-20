@@ -18,7 +18,7 @@ if __name__ == '__main__':
 
     embedding = BaselineEmbedding()
 
-    dev_glove_embedding, dev_glove_vocab = embedding.create_glove_embedding(dev_vocab)
+    dev_glove_embedding, dev_glove_vocab = embedding.create_embeddings(dev_vocab)
 
     dev_baseline_model = BaselineDescriber(
         dev_glove_vocab,

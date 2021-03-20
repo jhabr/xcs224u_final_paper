@@ -1,61 +1,100 @@
 import time
-from baseline.model import BaselineTokenizer, BaselineColorEncoder, BaselineEmbedding, BaselineDescriber
-from experiment.data_loader import DataLoader
-from utils.utils import UNK_SYMBOL
+
+from baseline.model import BaseEmbedding, BaselineDescriber, BaselineEmbedding
+from experiment.data_preprocessor import DataPreprocessor, BaselineDataPreprocessor, VisionDataPreprocessor
+
+
+class Experiment:
+    def __init__(
+            self,
+            identifier: int,
+            name: str,
+            model_class: type,
+            embedding: BaseEmbedding
+    ):
+        self.identifier = identifier
+        self.name = name
+        self.model_class = model_class
+        self.embedding = embedding
+
+    def run(self, data_preprocessor: DataPreprocessor, debug=False, run_bake_off=True):
+        print(f"STARTING experiment {self.identifier}: {self.name}.")
+
+        if debug:
+            vocab, colors_train, tokens_train, colors_test, tokens_test = data_preprocessor.prepare_dev_data()
+        else:
+            vocab, colors_train, tokens_train, colors_test, tokens_test = data_preprocessor.prepare_training_data()
+
+        created_embeddings, created_vocab = self.embedding.create_embeddings(vocab)
+
+        model = self.model_class(
+            embedding=created_embeddings,
+            vocab=created_vocab,
+            early_stopping=True
+        )
+
+        print("- 1. Training model...")
+        start = time.time()
+        model.fit(colors_train, tokens_train)
+        print(f"\n-- Training time: {(time.time() - start)} s")
+        print("- 2. Evaluating model...")
+        start = time.time()
+        print(model.evaluate(colors_test, tokens_test))
+        print(f"-- Evaluation time: {(time.time() - start)} s")
+
+        if not debug and run_bake_off:
+            colors, tokens = data_preprocessor.prepare_bake_off_data()
+            print("- 3. Bake-Off...")
+            start = time.time()
+            print(model.evaluate(colors, tokens))
+            print(f"-- Bake-Off time: {(time.time() - start)} s")
+
+        print(f"DONE experiment {self.identifier}: {self.name}.")
 
 
 class ExperimentLibrary:
 
-    def __init__(self):
-        self.data_loader = DataLoader()
-        self.dev_dataset = self.data_loader.load_dev_dataset_with_vocab()
-        self.full_dataset = self.data_loader.load_full_dataset()
-        self.bake_off_dataset = self.data_loader.load_bake_off_dataset()
-
-    def run_baseline(self, debug=False, run_bake_off=True):
-        print("-- Starting experiment BASELINE.")
-        tokenizer = BaselineTokenizer()
-        color_encoder = BaselineColorEncoder()
-        embedding = BaselineEmbedding()
-
-        if debug:
-            vocab, colors_train, colors_test, tokens_train, tokens_test = self.dev_dataset
-        else:
-            raw_colors_train, raw_colors_test, raw_texts_train, raw_texts_test = self.full_dataset
-            colors_train = [color_encoder.encode_color_context(colors) for colors in raw_colors_train]
-            tokens_train = [tokenizer.encode(text) for text in raw_texts_train]
-
-            colors_test = [color_encoder.encode_color_context(colors) for colors in raw_colors_test]
-            tokens_test = [tokenizer.encode(text) for text in raw_texts_test]
-
-            vocab = sorted({word for tokens in tokens_train for word in tokens})
-            vocab += [UNK_SYMBOL]
-
-        glove_embedding, glove_vocab = embedding.create_glove_embedding(vocab)
-
-        baseline_model = BaselineDescriber(
-            glove_vocab,
-            embedding=glove_embedding,
-            early_stopping=True
+    @staticmethod
+    def run_baseline(debug=False):
+        experiment = Experiment(
+            identifier=1,
+            name="BASELINE - GloVe, Fourier",
+            model_class=BaselineDescriber,
+            embedding=BaselineEmbedding()
         )
 
-        print("-- Training model...")
-        start = time.time()
-        baseline_model.fit(colors_train, tokens_train)
-        print(f"\n-- Training time: {(time.time() - start)} s")
-        print("-- Evaluating model...")
-        start = time.time()
-        print(baseline_model.evaluate(colors_test, tokens_test))
-        print(f"-- Evaluation time: {(time.time() - start)} s")
+        experiment.run(
+            data_preprocessor=BaselineDataPreprocessor(),
+            debug=debug,
+            run_bake_off=True
+        )
 
-        if not debug and run_bake_off:
-            raw_colors, raw_texts = self.bake_off_dataset
-            colors = [color_encoder.encode_color_context(colors) for colors in raw_colors]
-            tokens = [tokenizer.encode(text) for text in raw_texts]
+    @staticmethod
+    def run_baseline_vision(debug=False):
+        experiment = Experiment(
+            identifier=11,
+            name="VISION - GloVe, ResNet18",
+            model_class=BaselineDescriber,
+            embedding=BaselineEmbedding()
+        )
 
-            print("-- Bake-Off...")
-            start = time.time()
-            print(baseline_model.evaluate(colors, tokens))
-            print(f"-- Bake-Off time: {(time.time() - start)} s")
+        experiment.run(
+            data_preprocessor=VisionDataPreprocessor(),
+            debug=debug,
+            run_bake_off=True
+        )
 
-        print("-- Done experiment BASELINE.")
+    @staticmethod
+    def run_baseline_vision_with_fourier(debug=False):
+        experiment = Experiment(
+            identifier=16,
+            name="VISION - GloVe, ResNet18 + Fourier",
+            model_class=BaselineDescriber,
+            embedding=BaselineEmbedding()
+        )
+
+        experiment.run(
+            data_preprocessor=VisionDataPreprocessor(fourier_embeddings=True),
+            debug=debug,
+            run_bake_off=True
+        )
