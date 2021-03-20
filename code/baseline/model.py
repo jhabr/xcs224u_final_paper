@@ -140,7 +140,6 @@ class BaselineEncoder(Encoder):
             num_layers=2 if self.drop_out > 0.0 else 1
         )
 
-
 class BaselineDecoder(Decoder):
     """
     This class represents the baseline system decoder.
@@ -231,6 +230,56 @@ class BaselineDescriber(ContextualColorDescriber):
             embed_dim=self.embed_dim,
             embedding=self.embedding,
             hidden_dim=self.hidden_dim
+        )
+
+        return BaselineEncoderDecoder(encoder, decoder)
+
+class BaselineLSTMEncoder(Encoder):
+    """
+    This class represents the baseline encoder with a LSTM cell
+    """
+    def __init__(self, color_dim, hidden_dim):
+        super().__init__(color_dim, hidden_dim)
+        self.color_dim = color_dim
+        self.hidden_dim = hidden_dim
+        self.rnn = nn.LSTM(
+            input_size=self.color_dim,
+            hidden_size=self.hidden_dim,
+            batch_first=True)
+
+class BaselineLSTMDecoder(BaselineDecoder):
+    """
+    This class represents the baseline system decoder with LSTM cell.
+    """
+
+    def __init__(self, color_dim, *args, **kwargs):
+        self.color_dim = color_dim
+        super().__init__(color_dim, *args, **kwargs)
+
+        self.rnn = nn.LSTM(
+            input_size=self.embed_dim + self.color_dim,
+            hidden_size=self.hidden_dim,
+            batch_first=True
+        )
+
+class BaselineLSTMDescriber(ContextualColorDescriber):
+    """
+    Based on ContextualColorDescriber, this class bundles the LSTM encoder together with
+    the LSTM decoder in form of a BaselineEncoderDecoder class.
+    """
+
+    def build_graph(self):
+        encoder = BaselineLSTMEncoder(
+            color_dim=self.color_dim,
+            hidden_dim=self.hidden_dim
+        )
+
+        decoder = BaselineLSTMDecoder(
+            vocab_size=self.vocab_size,
+            embed_dim=self.embed_dim,
+            embedding=self.embedding,
+            hidden_dim=self.hidden_dim,
+            color_dim=self.color_dim
         )
 
         return BaselineEncoderDecoder(encoder, decoder)
