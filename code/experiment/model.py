@@ -27,6 +27,19 @@ class EmbeddingExtractorType(Enum):
     LAYER12 = 112
     STATICANDLAYER12 = 113
 
+class TransformerEmbeddingEncoder(Encoder):
+    """
+    This class represents an encoder with a LSTM cell
+    """
+    def __init__(self, color_dim, hidden_dim):
+        super().__init__(color_dim, hidden_dim)
+        self.color_dim = color_dim
+        self.hidden_dim = hidden_dim
+        self.rnn = nn.GRU(
+            input_size=self.color_dim,
+            hidden_size=self.hidden_dim,
+            batch_first=True)
+
 class TransformerEmbeddingDecoder(Decoder):
     """
     This class represents the baseline system decoder.
@@ -41,9 +54,17 @@ class TransformerEmbeddingDecoder(Decoder):
         self.extractor = extractor
         self.model, self.tokenizer = self.__select_model()
         
+        # input_size based on single embeddings such as the static embeddings
         input_size = self.embed_dim + self.color_dim
+        # input_size taking into account a combination of two embeddings (static and contextual)
+        # with the same dimension
         if extractor == EmbeddingExtractorType.STATICANDLAYER12:
-            input_size = self.embed_dim * 2 + self.color_dim
+            input_size = self.embed_dim * 2 + self.color_dim        
+        # input_size taking into account the dimension of ELECTRA static embeddings (128) and
+        # contextual embeddings (256)
+        if extractor == EmbeddingExtractorType.STATICANDLAYER12 \
+            and transformer == TransformerType.ELECTRA:
+            input_size = self.embed_dim * 3 + self.color_dim
 
         self.rnn = nn.GRU(
             input_size=input_size,
@@ -104,6 +125,14 @@ class TransformerEmbeddingDecoder(Decoder):
         if self.extractor == EmbeddingExtractorType.LAYER12:
             return self.__extract_layer_embedding(word_seqs, layer_index=12)        
 
+        if self.extractor == EmbeddingExtractorType.STATICANDLAYER12:
+            last_layer_embeddings = self.__extract_layer_embedding(word_seqs, layer_index=12)
+            return self.__combine_last_layer_static_embeddings(word_seqs, last_layer_embeddings)
+
+    
+    def __combine_last_layer_static_embeddings(self, word_seqs, last_layer_embeddings):
+        return torch.cat((self.embedding(word_seqs), last_layer_embeddings), dim=-1)        
+
     def __extract_layer_embedding(self, word_seqs, layer_index):
 
         embeddings = []
@@ -115,9 +144,7 @@ class TransformerEmbeddingDecoder(Decoder):
             outputs = self.model(input_ids=input_ids, output_hidden_states=True)
             embeddings.append(outputs.hidden_states[layer_index].squeeze(0))
 
-        embeddings = torch.stack(embeddings)
-
-        return embeddings
+        return torch.stack(embeddings)
 
 
 class TransformerEmbeddingDescriber(ContextualColorDescriber):
