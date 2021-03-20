@@ -15,41 +15,55 @@ from enum import Enum
 import utils.utils as utils
 from utils.utils import START_SYMBOL, END_SYMBOL, UNK_SYMBOL
 
+class TransformerType(Enum):
+    BERT = 100
+    XLNet = 101
+    RoBERTa = 102
+    ELECTRA = 103
+
+class EmbeddingExtractorType(Enum):
+    STATIC = 100
+    POSITIONAL = 101
+    LAYER12 = 112
+    STATICANDLAYER12 = 113
+
 class TransformerEmbeddingDecoder(Decoder):
     """
     This class represents the baseline system decoder.
     """
 
-    def __init__(self, color_dim, vocab, model, tokenizer, embed_extractor, *args, **kwargs):
+    def __init__(self, color_dim, vocab, transformer=TransformerType.BERT, extractor=EmbeddingExtractorType.STATIC, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
         self.color_dim = color_dim
-        self.vocab = vocab                
-        self.tokenizer = tokenizer
-        self.model = model
-        self.embed_extractor = embed_extractor
+        self.vocab = vocab
+        self.transformer = transformer
+        self.extractor = extractor
+        self.model, self.tokenizer = self.__select_model()
         
+        input_size = self.embed_dim + self.color_dim
+        if extractor == EmbeddingExtractorType.STATICANDLAYER12:
+            input_size = self.embed_dim * 2 + self.color_dim
+
         self.rnn = nn.GRU(
-            input_size=self.embed_dim + self.color_dim,
+            input_size=input_size,
             hidden_size=self.hidden_dim,
             batch_first=True
         )
 
     def get_embeddings(self, word_seqs, target_colors=None):
         _, repeats = word_seqs.size()
+
+        device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
         
-        embeddings = self.embed_extractor.extract( 
-            embedding=self.embedding,
-            vocab=self.vocab, 
-            word_seqs=word_seqs, 
-            model=self.model, 
-            tokenizer=self.tokenizer)
+        embeddings = self.__extract_embeddings(word_seqs)
 
         target_colors_reshaped = torch.repeat_interleave(
             target_colors, repeats, dim=0
         ).view(*word_seqs.shape, -1)
 
         result = torch.cat((embeddings, target_colors_reshaped), dim=-1)
+        result.to(device)
 
         expected = torch.empty(
             word_seqs.shape[0],
@@ -61,6 +75,50 @@ class TransformerEmbeddingDecoder(Decoder):
 
         return result
 
+    def __select_model(self):
+        if self.transformer == TransformerType.BERT:
+            tokenizer = BertTokenizer.from_pretrained('bert-base-cased')
+            model = BertModel.from_pretrained('bert-base-cased')
+
+        if self.transformer == TransformerType.XLNet:
+            tokenizer = XLNetTokenizer.from_pretrained('xlnet-base-cased')
+            model = XLNetModel.from_pretrained('xlnet-base-cased')
+
+        if self.transformer == TransformerType.RoBERTa:
+            tokenizer = RobertaTokenizer.from_pretrained('roberta-base')
+            model = RobertaModel.from_pretrained('roberta-base')
+
+        if self.transformer == TransformerType.ELECTRA:
+            tokenizer = ElectraTokenizer.from_pretrained('google/electra-small-discriminator')
+            model = ElectraModel.from_pretrained('google/electra-small-discriminator')
+
+        return model, tokenizer
+
+    def __extract_embeddings(self, word_seqs):
+        if self.extractor == EmbeddingExtractorType.STATIC:
+            return self.embedding(word_seqs)
+        
+        if self.extractor == EmbeddingExtractorType.POSITIONAL:
+            return self.__extract_layer_embedding(word_seqs, layer_index=0)
+
+        if self.extractor == EmbeddingExtractorType.LAYER12:
+            return self.__extract_layer_embedding(word_seqs, layer_index=12)        
+
+    def __extract_layer_embedding(self, word_seqs, layer_index):
+
+        embeddings = []
+        for ws in word_seqs:
+            utterence = []
+            for i in ws:
+                utterence.append(self.vocab[i])                
+            input_ids = torch.LongTensor(self.tokenizer.convert_tokens_to_ids(utterence)).unsqueeze(0)
+            outputs = self.model(input_ids=input_ids, output_hidden_states=True)
+            embeddings.append(outputs.hidden_states[layer_index].squeeze(0))
+
+        embeddings = torch.stack(embeddings)
+
+        return embeddings
+
 
 class TransformerEmbeddingDescriber(ContextualColorDescriber):
     """
@@ -69,15 +127,11 @@ class TransformerEmbeddingDescriber(ContextualColorDescriber):
     to be used for the extraction.
     """
 
-    def __init__(self, model, tokenizer, embed_extractor, *args, **kwargs):
+    def __init__(self, transformer=TransformerType.BERT, extractor=EmbeddingExtractorType.STATIC, *args, **kwargs):
         super().__init__(*args, **kwargs)
         
-        self.embed_extractor = embed_extractor
-        self.tokenizer = tokenizer
-        self.model = model
-
-    def get_extractor(self):
-        return self.embed_extractor
+        self.transformer = transformer
+        self.extractor = extractor
 
     def build_graph(self):
         encoder = Encoder(
@@ -92,9 +146,8 @@ class TransformerEmbeddingDescriber(ContextualColorDescriber):
             embedding=self.embedding,
             hidden_dim=self.hidden_dim,
             color_dim=self.color_dim,
-            tokenizer=self.tokenizer,
-            model=self.model,
-            embed_extractor=self.embed_extractor
+            transformer=self.transformer,
+            extractor=self.extractor
         )
 
         return TransformerEmbeddingEncoderDecoder(encoder, decoder)
@@ -109,7 +162,10 @@ class TransformerEmbeddingEncoderDecoder(EncoderDecoder):
         if hidden is None:
             hidden = self.encoder(color_seqs)
 
+        device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+
         target_colors = torch.stack([colors[-1] for colors in color_seqs])
+        target_colors.to(device)
 
         output, hidden = self.decoder(
             word_seqs=word_seqs,
@@ -122,82 +178,4 @@ class TransformerEmbeddingEncoderDecoder(EncoderDecoder):
             return output
         else:
             return output, hidden
-
-
-class EmbeddingExtractorType(Enum):
-    STATIC = 100
-    POSITIONAL = 101
-    LAYER12 = 112
-
-class EmbeddingExtractor:
-
-    def __init__(self, embed_extractor=EmbeddingExtractorType.STATIC):
-        """
-        extractor : EmbeddingExtractorType
-            This is the enum specifying which extraction model to be applied. 
-        """
-
-        self.embed_extractor = embed_extractor
-
-    def get_extractor_type(self):
-        return self.embed_extractor
-
-    def extract(self, embedding, vocab, word_seqs, model, tokenizer):
-        """
-        Extracts embeddings in the decoder get_embedding() method.
-
-        Parameters
-        ----------
-
-        embedding : pytorch.nn.Embedding
-            This is the embedding of the Describer model.
-
-        vocab : list of strings
-            This is the vocab used by the Describer model.
-
-        word_seqs : torch.LongTensor
-            This is a padded sequence, dimension (m, k), where k is
-            the length of the longest sequence in the batch. The `forward`
-            method uses `self.get_embeddings` to mape these indices to their
-            embeddings.
-
-        model : Huggingface transformer model
-            This is the model to be used for the extraction of embeddings in the decoder.
-            It is ignored if self.embed_extractor=EmbeddingExtractorType.STATIC
-
-        tokenizer : Huggingface transformer tokenizer
-            This is the tokenizer to be used for the extraction of embeddings in the decoder.
-            It is ignored if self.embed_extractor=EmbeddingExtractorType.STATIC
-
-        Returns
-        -------
-            The word_seqs embeddings to be used in the decoder. The shape is `(m, k, hidden_dim)`
-            where m is the number of examples and k is the max lenght of the sequence 
-            in the batch.
-
-        """
-
-        if self.embed_extractor == EmbeddingExtractorType.STATIC:
-            return embedding(word_seqs)
-        
-        if self.embed_extractor == EmbeddingExtractorType.POSITIONAL:
-            return self.__extract_layer_embedding(vocab, word_seqs, model, tokenizer, layer_index=0)
-
-        if self.embed_extractor == EmbeddingExtractorType.LAYER12:
-            return self.__extract_layer_embedding(vocab, word_seqs, model, tokenizer, layer_index=12)        
-
-    def __extract_layer_embedding(self, vocab, word_seqs, model, tokenizer, layer_index):
-
-        embeddings = []
-        for ws in word_seqs:
-            utterence = []
-            for i in ws:
-                utterence.append(vocab[i])                
-            input_ids = torch.LongTensor(tokenizer.convert_tokens_to_ids(utterence)).unsqueeze(0)
-            outputs = model(input_ids=input_ids, output_hidden_states=True)
-            embeddings.append(outputs.hidden_states[layer_index].squeeze(0))
-
-        embeddings = torch.stack(embeddings)
-
-        return embeddings
         
