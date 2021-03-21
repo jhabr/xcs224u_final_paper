@@ -12,7 +12,7 @@ from utils.utils import START_SYMBOL, END_SYMBOL, UNK_SYMBOL
 __authors__ = "Anton Gochev, Jaro Habr, Yan Jiang, Samuel Kahn"
 __version__ = "XCS224u, Stanford, Winter 2021"
 
-def extract_input_embeddings(colour_texts, model, tokenizer, strip_punct=True, strip_symbols=True):
+def extract_input_embeddings(colour_texts, model, tokenizer, strip_punct=True, strip_symbols=True, add_special_tokens=False):
     """
     Parameters 
     ----------
@@ -52,7 +52,7 @@ def extract_input_embeddings(colour_texts, model, tokenizer, strip_punct=True, s
     for ct in colour_texts:
         if strip_punct:
             ct = strip_punctuation(ct)
-        input_ids = torch.tensor(tokenizer.encode(ct, add_special_tokens=False)).unsqueeze(0)
+        input_ids = torch.tensor(tokenizer.encode(ct, add_special_tokens=add_special_tokens)).unsqueeze(0)
         input_tokens = tokenizer.convert_ids_to_tokens(input_ids[0])        
         vectors = embeddings(input_ids)
         
@@ -122,7 +122,7 @@ def extract_colour_examples(examples, from_word_count=5):
     return result
 
 
-def tokenize_colour_description(s, tokenizer):
+def tokenize_colour_description(s, tokenizer, add_special_tokens=False):
     """
     Parameters 
     ----------
@@ -139,7 +139,7 @@ def tokenize_colour_description(s, tokenizer):
 
     """
     s = strip_punctuation(s.lower())
-    input_ids = torch.tensor(tokenizer.encode(s, add_special_tokens=False)).unsqueeze(0)
+    input_ids = torch.tensor(tokenizer.encode(s, add_special_tokens=add_special_tokens)).unsqueeze(0)
     input_tokens = tokenizer.convert_ids_to_tokens(input_ids[0])
     
     result = []

@@ -26,6 +26,10 @@ class EmbeddingExtractorType(Enum):
     POSITIONAL = 101
     LAYER12 = 112
     STATICANDLAYER12 = 113
+    LASTFOURLAYERS = 114
+    SUMLASTFOURLAYERS = 115
+    LAYER11 = 116
+    SUMALLLAYERS = 117
 
 class TransformerEmbeddingEncoder(Encoder):
     """
@@ -60,12 +64,19 @@ class TransformerEmbeddingDecoder(Decoder):
         # input_size taking into account a combination of two embeddings (static and contextual)
         # with the same dimension
         if extractor == EmbeddingExtractorType.STATICANDLAYER12:
-            input_size = self.embed_dim * 2 + self.color_dim        
+            input_size = self.embed_dim * 2 + self.color_dim    
+        # input_size taking into account the dimensions of the last four layers
+        if extractor == EmbeddingExtractorType.LASTFOURLAYERS:
+            input_size = self.embed_dim * 4 + self.color_dim    
         # input_size taking into account the dimension of ELECTRA static embeddings (128) and
         # contextual embeddings (256)
-        if extractor == EmbeddingExtractorType.STATICANDLAYER12 \
-            and transformer == TransformerType.ELECTRA:
-            input_size = self.embed_dim * 3 + self.color_dim
+        if transformer == TransformerType.ELECTRA:
+            if extractor == EmbeddingExtractorType.LASTFOURLAYERS:
+                input_size = self.embed_dim * 8 + self.color_dim
+            if extractor == EmbeddingExtractorType.STATICANDLAYER12:                
+                input_size = self.embed_dim * 3 + self.color_dim
+            else:
+                input_size = self.embed_dim * 2 + self.color_dim    
 
         self.rnn = nn.GRU(
             input_size=input_size,
@@ -123,15 +134,67 @@ class TransformerEmbeddingDecoder(Decoder):
         if self.extractor == EmbeddingExtractorType.POSITIONAL:
             return self.__extract_layer_embedding(word_seqs, layer_index=0)
 
+        if self.extractor == EmbeddingExtractorType.LAYER11:
+            return self.__extract_layer_embedding(word_seqs, layer_index=11)
+
         if self.extractor == EmbeddingExtractorType.LAYER12:
             return self.__extract_layer_embedding(word_seqs, layer_index=12)        
 
         if self.extractor == EmbeddingExtractorType.STATICANDLAYER12:
             last_layer_embeddings = self.__extract_layer_embedding(word_seqs, layer_index=12)
-            return self.__combine_last_layer_static_embeddings(word_seqs, last_layer_embeddings)
+            return self.__combine_layers_with_static_embeddings(word_seqs, last_layer_embeddings)
 
+        if self.extractor == EmbeddingExtractorType.LASTFOURLAYERS:
+            return self.__combine_last_four_layers(word_seqs)
+            # return self.__combine_layers_with_static_embeddings(word_seqs, four_layers)
+        
+        if self.extractor == EmbeddingExtractorType.SUMLASTFOURLAYERS:
+            return self.__sum_last_four_layers(word_seqs)
+
+        if self.extractor == EmbeddingExtractorType.SUMALLLAYERS:
+            return self.__sum_all_layers(word_seqs)
+
+    def __combine_last_four_layers(self, word_seqs):
+        # print('in combine')
+        layer_12 = self.__extract_layer_embedding(word_seqs, layer_index=12)        
+        layer_11 = self.__extract_layer_embedding(word_seqs, layer_index=11)        
+        layer_10 = self.__extract_layer_embedding(word_seqs, layer_index=10)        
+        layer_9 = self.__extract_layer_embedding(word_seqs, layer_index=9)
+        # print(layer_12.shape)
+        # print(layer_11.shape)
+        # print(layer_10.shape)
+        # print(layer_9.shape)
+
+        result = torch.cat((layer_9, layer_10, layer_11, layer_12), dim=-1)
+
+        return result
     
-    def __combine_last_layer_static_embeddings(self, word_seqs, last_layer_embeddings):
+    def __sum_last_four_layers(self, word_seqs):
+        # print('in sum')
+        layer_12 = self.__extract_layer_embedding(word_seqs, layer_index=12)        
+        layer_11 = self.__extract_layer_embedding(word_seqs, layer_index=11)        
+        layer_10 = self.__extract_layer_embedding(word_seqs, layer_index=10)        
+        layer_9 = self.__extract_layer_embedding(word_seqs, layer_index=9)
+        # print(layer_12.shape)
+        # print(layer_11.shape)
+        # print(layer_10.shape)
+        # print(layer_9.shape)
+
+        result = layer_9 + layer_10 + layer_11 + layer_12
+
+        return result
+
+    def __sum_all_layers(self, word_seqs):
+        # print('in all')
+
+        result = self.__extract_layer_embedding(word_seqs, layer_index=1)
+        for i in range(11):
+            layer = self.__extract_layer_embedding(word_seqs, layer_index=i+2)
+            result = result + layer
+
+        return result
+
+    def __combine_layers_with_static_embeddings(self, word_seqs, last_layer_embeddings):
         return torch.cat((self.embedding(word_seqs), last_layer_embeddings), dim=-1)        
 
     def __extract_layer_embedding(self, word_seqs, layer_index):
@@ -145,9 +208,7 @@ class TransformerEmbeddingDecoder(Decoder):
             outputs = self.model(input_ids=input_ids, output_hidden_states=True)
             embeddings.append(outputs.hidden_states[layer_index].squeeze(0))
         
-        embeddings = torch.stack(embeddings).to(self.device)
-        
-        return embeddings
+        return torch.stack(embeddings)
 
 
 class TransformerEmbeddingDescriber(ContextualColorDescriber):
