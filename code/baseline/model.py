@@ -140,6 +140,7 @@ class BaselineEncoder(Encoder):
             num_layers=2 if self.drop_out > 0.0 else 1
         )
 
+
 class BaselineDecoder(Decoder):
     """
     This class represents the baseline system decoder.
@@ -234,10 +235,12 @@ class BaselineDescriber(ContextualColorDescriber):
 
         return BaselineEncoderDecoder(encoder, decoder)
 
+
 class BaselineLSTMEncoder(Encoder):
     """
     This class represents the baseline encoder with a LSTM cell
     """
+
     def __init__(self, color_dim, hidden_dim):
         super().__init__(color_dim, hidden_dim)
         self.color_dim = color_dim
@@ -246,6 +249,7 @@ class BaselineLSTMEncoder(Encoder):
             input_size=self.color_dim,
             hidden_size=self.hidden_dim,
             batch_first=True)
+
 
 class BaselineLSTMDecoder(BaselineDecoder):
     """
@@ -261,6 +265,7 @@ class BaselineLSTMDecoder(BaselineDecoder):
             hidden_size=self.hidden_dim,
             batch_first=True
         )
+
 
 class BaselineLSTMDescriber(ContextualColorDescriber):
     """
