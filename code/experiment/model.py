@@ -149,10 +149,10 @@ class TransformerEmbeddingDecoder(Decoder):
             # return self.__combine_layers_with_static_embeddings(word_seqs, four_layers)
         
         if self.extractor == EmbeddingExtractorType.SUMLASTFOURLAYERS:
-            return self.__sum_last_four_layers(word_seqs)
+            return self.__sum_layers(word_seqs, number_of_layers=4)
 
         if self.extractor == EmbeddingExtractorType.SUMALLLAYERS:
-            return self.__sum_all_layers(word_seqs)
+            return self.__sum_layers(word_seqs, number_of_layers=12)
 
     def __combine_last_four_layers(self, word_seqs):
         # print('in combine')
@@ -166,31 +166,6 @@ class TransformerEmbeddingDecoder(Decoder):
         # print(layer_9.shape)
 
         result = torch.cat((layer_9, layer_10, layer_11, layer_12), dim=-1)
-
-        return result
-    
-    def __sum_last_four_layers(self, word_seqs):
-        # print('in sum')
-        layer_12 = self.__extract_layer_embedding(word_seqs, layer_index=12)        
-        layer_11 = self.__extract_layer_embedding(word_seqs, layer_index=11)        
-        layer_10 = self.__extract_layer_embedding(word_seqs, layer_index=10)        
-        layer_9 = self.__extract_layer_embedding(word_seqs, layer_index=9)
-        # print(layer_12.shape)
-        # print(layer_11.shape)
-        # print(layer_10.shape)
-        # print(layer_9.shape)
-
-        result = layer_9 + layer_10 + layer_11 + layer_12
-
-        return result
-
-    def __sum_all_layers(self, word_seqs):
-        # print('in all')
-
-        result = self.__extract_layer_embedding(word_seqs, layer_index=1)
-        for i in range(11):
-            layer = self.__extract_layer_embedding(word_seqs, layer_index=i+2)
-            result = result + layer
 
         return result
 
@@ -210,6 +185,21 @@ class TransformerEmbeddingDecoder(Decoder):
         
         return torch.stack(embeddings)
 
+    def __sum_layers(self, word_seqs, number_of_layers):
+        start_index = 13 - number_of_layers
+        embeddings = []
+        for ws in word_seqs:
+            utterence = []
+            for i in ws:
+                utterence.append(self.vocab[i])                
+            input_ids = torch.LongTensor(self.tokenizer.convert_tokens_to_ids(utterence)).unsqueeze(0).to(self.device)
+            outputs = self.model(input_ids=input_ids, output_hidden_states=True)
+            result = outputs.hidden_states[start_index].squeeze(0)            
+            for i in range(number_of_layers-1):
+                result = result + outputs.hidden_states[start_index+i+1].squeeze(0)
+            embeddings.append(result)
+        
+        return torch.stack(embeddings)
 
 class TransformerEmbeddingDescriber(ContextualColorDescriber):
     """
