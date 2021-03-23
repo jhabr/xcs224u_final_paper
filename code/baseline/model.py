@@ -9,6 +9,7 @@ import torch.nn as nn
 import baseline.helper as bh
 import utils.utils as utils
 from baseline import ROOT
+from baseline.base import BaseTokenizer, BaseColorEncoder, BaseEmbedding
 from utils.torch_color_describer import Encoder, Decoder, EncoderDecoder, ContextualColorDescriber
 from utils.utils import START_SYMBOL, END_SYMBOL
 
@@ -16,7 +17,7 @@ __authors__ = "Anton Gochev, Jaro Habr, Yan Jiang, Samuel Kahn"
 __version__ = "XCS224u, Stanford, Winter 2021"
 
 
-class BaselineTokenizer:
+class BaselineTokenizer(BaseTokenizer):
     """
     The BaselineTokenizer class is responsible for encoding/tokenizing the text
     for the baseline system.
@@ -51,11 +52,6 @@ class BaselineTokenizer:
         return [START_SYMBOL] + tokens + [END_SYMBOL]
 
 
-class BaseColorEncoder:
-    def encode_color_context(self, hls_colors):
-        raise NotImplementedError
-
-
 class BaselineColorEncoder(BaseColorEncoder):
     """
     This class is responsimble for encoding HLS colors to other color formats.
@@ -86,11 +82,6 @@ class GloVeEmbedding(Enum):
     DIM_100 = 100
     DIM_200 = 200
     DIM_300 = 300
-
-
-class BaseEmbedding:
-    def create_embeddings(self, vocab, dim):
-        raise NotImplementedError
 
 
 class BaselineEmbedding(BaseEmbedding):

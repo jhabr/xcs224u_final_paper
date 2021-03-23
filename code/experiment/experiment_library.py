@@ -1,7 +1,14 @@
 import time
 
 from baseline.model import BaseEmbedding, BaselineDescriber, BaselineEmbedding
+from datetime import datetime
 from experiment.data_preprocessor import DataPreprocessor, BaselineDataPreprocessor, VisionDataPreprocessor
+
+
+class TimeFormatter:
+    @staticmethod
+    def format(time_to_format):
+        return time_to_format.strftime("%d/%m/%Y %H:%M:%S")
 
 
 class Experiment:
@@ -22,7 +29,9 @@ class Experiment:
         self.decoder_dropout = decoder_dropout
 
     def run(self, data_preprocessor: DataPreprocessor, debug=False, run_bake_off=True):
-        print(f"STARTING experiment {self.identifier}: {self.name}.")
+        experiment_start = time.time()
+        print(f"STARTING experiment {self.identifier}: {self.name}.\n"
+              f"Start time: {TimeFormatter.format(datetime.now())}")
 
         if debug:
             vocab, colors_train, tokens_train, colors_test, tokens_test = data_preprocessor.prepare_dev_data()
@@ -55,7 +64,9 @@ class Experiment:
             print(model.evaluate(colors, tokens))
             print(f"-- Bake-Off time: {(time.time() - start)} s")
 
-        print(f"DONE experiment {self.identifier}: {self.name}.")
+        experiment_end = time.time() - experiment_start
+        print(f"DONE experiment {self.identifier}: {self.name}.\n"
+              f"End time: {TimeFormatter.format(datetime.now())}. Duration: {experiment_end} s.")
 
 
 class ExperimentLibrary:
