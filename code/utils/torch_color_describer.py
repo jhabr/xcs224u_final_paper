@@ -856,7 +856,7 @@ class ContextualColorDescriber(TorchModelBase):
 
 
 
-def create_example_dataset(group_size=100, vec_dim=2):
+def create_example_dataset(group_size=100, vec_dim=2, add_special_tokens=True, output_words=False):
     """
     Creates simple datasets in which the inputs are three-vector
     sequences and the outputs are simple character sequences, with
@@ -874,10 +874,16 @@ def create_example_dataset(group_size=100, vec_dim=2):
 
     groups = ((0.0, 0.2), (0.4, 0.6), (0.8, 1.0))
     vocab = ['<s>', '</s>', 'A', 'B', '$UNK']
-    seqs = [
-        ['<s>', 'A', '</s>'],
-        ['<s>', 'A', 'B', '</s>'],
-        ['<s>', 'B', 'A', 'B', 'A', '</s>']]
+    if add_special_tokens:
+        seqs = [
+            ['<s>', 'A', '</s>'],
+            ['<s>', 'A', 'B', '</s>'],
+            ['<s>', 'B', 'A', 'B', 'A', '</s>']]
+    else:
+        seqs = [
+            ['A'],
+            ['A', 'B'],
+            ['B', 'A', 'B', 'A']]
 
     color_seqs = []
     word_seqs = []
@@ -897,6 +903,9 @@ def create_example_dataset(group_size=100, vec_dim=2):
             color_seqs.append(context)
 
         word_seqs += [seq for _ in range(group_size)]
+
+    if output_words:
+        word_seqs = ["".join(word_seq) for word_seq in word_seqs]
 
     return color_seqs, word_seqs, vocab
 

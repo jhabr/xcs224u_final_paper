@@ -16,10 +16,12 @@ class DataLoader:
         file_name = os.path.join(ROOT, "data", "colors", "cs224u-colors-bakeoff-data.csv")
         return self.__read_data(file_name, split=False)
 
-    def load_dev_dataset_with_vocab(self):
+    def load_dev_dataset_with_vocab(self, add_special_tokens=True, output_words=False):
         dev_colors, dev_text, dev_vocab = create_example_dataset(
             group_size=50,
-            vec_dim=2
+            vec_dim=2,
+            add_special_tokens=add_special_tokens,
+            output_words=output_words
         )
 
         return [dev_vocab] + train_test_split(dev_colors, dev_text)
