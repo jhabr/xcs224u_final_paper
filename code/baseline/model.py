@@ -128,16 +128,16 @@ class BaselineEncoder(Encoder):
     This class represents the baseline system encoder.
     """
 
-    def __init__(self, drop_out=0.0, *args, **kwargs):
-        self.drop_out = drop_out
+    def __init__(self, dropout=0.0, *args, **kwargs):
+        self.dropout = dropout
         super().__init__(*args, **kwargs)
 
         self.rnn = nn.GRU(
             input_size=self.color_dim,
             hidden_size=self.hidden_dim,
             batch_first=True,
-            dropout=self.drop_out,
-            num_layers=2 if self.drop_out > 0.0 else 1
+            dropout=self.dropout,
+            num_layers=2 if self.dropout > 0.0 else 1
         )
 
 
@@ -146,17 +146,17 @@ class BaselineDecoder(Decoder):
     This class represents the baseline system decoder.
     """
 
-    def __init__(self, color_dim, drop_out=0.0, *args, **kwargs):
+    def __init__(self, color_dim, dropout=0.0, *args, **kwargs):
         self.color_dim = color_dim
-        self.drop_out = drop_out
+        self.dropout = dropout
         super().__init__(*args, **kwargs)
 
         self.rnn = nn.GRU(
             input_size=self.embed_dim + self.color_dim,
             hidden_size=self.hidden_dim,
             batch_first=True,
-            dropout=self.drop_out,
-            num_layers=2 if self.drop_out > 0.0 else 1
+            dropout=self.dropout,
+            num_layers=2 if self.dropout > 0.0 else 1
         )
 
     def get_embeddings(self, word_seqs, target_colors=None):
@@ -211,22 +211,22 @@ class BaselineDescriber(ContextualColorDescriber):
     the decoder in form of a BaselineEncoderDecoder class.
     """
 
-    def __init__(self, encoder_drop_out=0.0, decoder_drop_out=0.0, *args, **kwargs):
-        self.encoder_drop_out = encoder_drop_out
-        self.decoder_drop_out = decoder_drop_out
+    def __init__(self, encoder_dropout=0.0, decoder_dropout=0.0, *args, **kwargs):
+        self.encoder_dropout = encoder_dropout
+        self.decoder_dropout = decoder_dropout
         self.device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
         super().__init__(*args, **kwargs)
 
     def build_graph(self):
         encoder = BaselineEncoder(
-            drop_out=self.encoder_drop_out,
+            dropout=self.encoder_dropout,
             color_dim=self.color_dim,
             hidden_dim=self.hidden_dim
         )
 
         decoder = BaselineDecoder(
             color_dim=self.color_dim,
-            drop_out=self.decoder_drop_out,
+            dropout=self.decoder_dropout,
             vocab_size=self.vocab_size,
             embed_dim=self.embed_dim,
             embedding=self.embedding,

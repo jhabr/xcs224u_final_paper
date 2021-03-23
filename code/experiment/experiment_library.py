@@ -10,12 +10,16 @@ class Experiment:
             identifier: int,
             name: str,
             model_class: type,
-            embedding: BaseEmbedding
+            embedding: BaseEmbedding,
+            encoder_dropout=0.0,
+            decoder_dropout=0.0
     ):
         self.identifier = identifier
         self.name = name
         self.model_class = model_class
         self.embedding = embedding
+        self.encoder_dropout = encoder_dropout
+        self.decoder_dropout = decoder_dropout
 
     def run(self, data_preprocessor: DataPreprocessor, debug=False, run_bake_off=True):
         print(f"STARTING experiment {self.identifier}: {self.name}.")
@@ -30,7 +34,9 @@ class Experiment:
         model = self.model_class(
             embedding=created_embeddings,
             vocab=created_vocab,
-            early_stopping=True
+            early_stopping=True,
+            encoder_dropout=self.encoder_dropout,
+            decoder_dropout=self.decoder_dropout
         )
 
         print("- 1. Training model...")
@@ -61,6 +67,23 @@ class ExperimentLibrary:
             name="BASELINE - GloVe, Fourier",
             model_class=BaselineDescriber,
             embedding=BaselineEmbedding()
+        )
+
+        experiment.run(
+            data_preprocessor=BaselineDataPreprocessor(),
+            debug=debug,
+            run_bake_off=True
+        )
+
+    @staticmethod
+    def run_baseline_with_dropout(debug=False):
+        experiment = Experiment(
+            identifier=2,
+            name="BASELINE - GloVe, Fourier, Dropout = 0.15",
+            model_class=BaselineDescriber,
+            embedding=BaselineEmbedding(),
+            encoder_dropout=0.15,
+            decoder_dropout=0.15
         )
 
         experiment.run(
