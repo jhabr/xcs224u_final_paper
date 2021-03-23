@@ -64,9 +64,9 @@ class Experiment:
             print(model.evaluate(colors, tokens))
             print(f"-- Bake-Off time: {(time.time() - start)} s")
 
-        experiment_end = time.time() - experiment_start
+        experiment_duration = time.time() - experiment_start
         print(f"DONE experiment {self.identifier}: {self.name}.\n"
-              f"End time: {TimeFormatter.format(datetime.now())}. Duration: {experiment_end} s.")
+              f"End time: {TimeFormatter.format(datetime.now())}. Duration: {experiment_duration} s.")
 
 
 class ExperimentLibrary:
