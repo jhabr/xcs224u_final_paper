@@ -243,7 +243,7 @@ class ExperimentLibrary:
             embeddings_extractor=EmbeddingExtractorType.SUMLASTFOURLAYERS
         )
 
-        bert_tokenizer = BertTokenizer.from_pretrained("'bert-base-cased'")
+        bert_tokenizer = BertTokenizer.from_pretrained("bert-base-cased")
 
         experiment.run(
             data_preprocessor=TransformerDataPreprocessor(tokenizer=bert_tokenizer),
@@ -282,7 +282,7 @@ class ExperimentLibrary:
             embeddings_extractor=EmbeddingExtractorType.SUMLASTFOURLAYERS
         )
 
-        bert_tokenizer = BertTokenizer.from_pretrained("'bert-base-cased'")
+        bert_tokenizer = BertTokenizer.from_pretrained("bert-base-cased")
 
         experiment.run(
             data_preprocessor=VisionTransformerDataPreprocessor(
