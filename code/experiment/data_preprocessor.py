@@ -88,19 +88,19 @@ class TransformerDataPreprocessor(DataPreprocessor):
         print("- Extracting color representations for training data...")
         colors_train = [self.color_encoder.encode_color_context(colors) for colors in raw_colors_train]
         print(f"\n-- Extraction time: {(time.time() - start)} s")
-        tokens_train = [
-            mu.tokenize_colour_description(text, self.tokenizer, add_special_tokens=True) for text in raw_texts_train
-        ]
+        # tokens_train = [
+        #     mu.tokenize_colour_description(text, self.tokenizer, add_special_tokens=True) for text in raw_texts_train
+        # ]
 
         start = time.time()
         print("- Extracting color representations for test data...")
         colors_test = [self.color_encoder.encode_color_context(colors) for colors in raw_colors_test]
         print(f"\n-- Extraction time: {(time.time() - start)} s")
-        tokens_test = [
-            mu.tokenize_colour_description(text, self.tokenizer, add_special_tokens=True) for text in raw_texts_test
-        ]
+        # tokens_test = [
+        #     mu.tokenize_colour_description(text, self.tokenizer, add_special_tokens=True) for text in raw_texts_test
+        # ]
 
-        return colors_train, tokens_train, colors_test, tokens_test
+        return colors_train, raw_texts_train, colors_test, raw_texts_test
 
     def prepare_bake_off_data(self):
         self.__check_attributes()
