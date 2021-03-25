@@ -1,6 +1,17 @@
+import os
+
 from experiment.experiment_library import ExperimentLibrary
 
+
+def set_python_path():
+    if os.getenv('PYTHONPATH') in None:
+        head, _ = os.path.split(os.path.abspath(os.getcwd()))
+        os.environ['PYTHONPATH'] = head
+
+
 if __name__ == '__main__':
+    set_python_path()
+
     # baseline
     # ExperimentLibrary.run_fourier_baseline(debug=True)
     # ExperimentLibrary.run_fourier_baseline_with_dropout(debug=True)
