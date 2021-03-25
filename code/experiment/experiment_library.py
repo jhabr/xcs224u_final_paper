@@ -236,7 +236,7 @@ class ExperimentLibrary:
     @staticmethod
     def run_fourier_bert_last_layers_sum(debug=False):
         experiment = TransformerExperiment(
-            identifier=29,
+            identifier=28,
             name="TRANSFORMER: Fourier - Bert, Sum last layers",
             model_class=TransformerEmbeddingDescriber,
             transformer_model=TransformerType.BERT,
