@@ -144,7 +144,7 @@ class TransformerExperiment(Experiment):
             transformer=self.transformer_model,
             extractor=self.embeddings_extractor,
             early_stopping=True,
-            batch_size=64
+            batch_size=32
         )
 
     def __get_model_and_tokenizer(self):
