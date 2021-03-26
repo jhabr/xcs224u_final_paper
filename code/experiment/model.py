@@ -1,3 +1,4 @@
+import time
 from enum import Enum
 
 import torch
@@ -9,7 +10,6 @@ from transformers import (
     RobertaTokenizer, RobertaModel
 )
 
-import utils.model_utils as mu
 from utils.torch_color_describer import (
     Encoder, Decoder,
     EncoderDecoder, ContextualColorDescriber
@@ -93,7 +93,9 @@ class TransformerEmbeddingDecoder(Decoder):
     def get_embeddings(self, token_indices_list, target_colors=None):
         _, repeats = token_indices_list.size()
 
+        start_time = time.time()
         embeddings = self.__extract_embeddings(token_indices_list)
+        print(f"-- Embedding extraction time: {time.time() - start_time} s.")
 
         target_colors_reshaped = torch.repeat_interleave(
             target_colors, repeats, dim=0
@@ -180,7 +182,7 @@ class TransformerEmbeddingDecoder(Decoder):
 
     def __extract_layer_embedding(self, token_indices_list, layer_index):
         embeddings = []
-        
+
         for token_indices in token_indices_list:
             tokens = []
             for token_index in token_indices:
