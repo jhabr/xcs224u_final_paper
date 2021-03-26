@@ -178,14 +178,14 @@ class TransformerEmbeddingDecoder(Decoder):
     def __combine_layers_with_static_embeddings(self, word_seqs, last_layer_embeddings):
         return torch.cat((self.embedding(word_seqs), last_layer_embeddings), dim=-1)
 
-    def __extract_layer_embedding(self, word_seqs, layer_index):
-
+    def __extract_layer_embedding(self, token_indices_list, layer_index):
         embeddings = []
-        for ws in word_seqs:
-            utterence = []
-            for i in ws:
-                utterence.append(self.vocab[i])
-            input_ids = torch.LongTensor(self.tokenizer.convert_tokens_to_ids(utterence)).unsqueeze(0).to(self.device)
+        
+        for token_indices in token_indices_list:
+            tokens = []
+            for token_index in token_indices:
+                tokens.append(self.vocab[token_index])
+            input_ids = torch.LongTensor(self.tokenizer.convert_tokens_to_ids(tokens)).unsqueeze(0).to(self.device)
             outputs = self.model(input_ids=input_ids, output_hidden_states=True)
             embeddings.append(outputs.hidden_states[layer_index].squeeze(0))
 
@@ -205,7 +205,7 @@ class TransformerEmbeddingDecoder(Decoder):
             # result = outputs.hidden_states[start_index].squeeze(0)
             result = 0
 
-            for layer_index in range(start_index, total_layers_count):  # from 10 to 13
+            for layer_index in range(start_index, total_layers_count):
                 result += outputs.hidden_states[layer_index].squeeze(0)
             embeddings.append(result)
 
