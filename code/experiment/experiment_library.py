@@ -292,3 +292,21 @@ class ExperimentLibrary:
             debug=debug,
             run_bake_off=True
         )
+
+    @staticmethod
+    def run_vision_fourier_bert_second_last_layer(debug=False):
+        experiment = TransformerExperiment(
+            identifier=30,
+            name="TRANSFORMER: Fourier - Bert, second last layer",
+            model_class=TransformerEmbeddingDescriber,
+            transformer_model=TransformerType.BERT,
+            embeddings_extractor=EmbeddingExtractorType.LAYER12
+        )
+
+        bert_tokenizer = BertTokenizer.from_pretrained("bert-base-cased")
+
+        experiment.run(
+            data_preprocessor=TransformerDataPreprocessor(tokenizer=bert_tokenizer),
+            debug=debug,
+            run_bake_off=True
+        )
