@@ -10,4 +10,4 @@ if __name__ == '__main__':
     # transformers
     ExperimentLibrary.run_fourier_bert_last_layers_sum(debug=False)
     # ExperimentLibrary.run_vision_bert_last_layers_sum(debug=True)
-    # ExperimentLibrary.run_vision_fourier_bert_second_last_layer(debug=False)
+    # ExperimentLibrary.run_vision_fourier_bert_last_layer(debug=False)

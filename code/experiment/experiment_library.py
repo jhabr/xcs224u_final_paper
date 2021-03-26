@@ -294,7 +294,7 @@ class ExperimentLibrary:
         )
 
     @staticmethod
-    def run_vision_fourier_bert_second_last_layer(debug=False):
+    def run_vision_fourier_bert_last_layer(debug=False):
         experiment = TransformerExperiment(
             identifier=30,
             name="TRANSFORMER: Fourier - Bert, second last layer",
