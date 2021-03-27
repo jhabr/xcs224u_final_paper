@@ -71,7 +71,7 @@ def extract_input_embeddings(token_list, model, tokenizer, strip_punct=True, str
     # model_embeddings[0] = utils.randvec(len(model_embeddings[1]))
     model_vocab.insert(0, '')
 
-    embeddings_dimension = len(model_embeddings[1])
+    embeddings_dimension = model_embeddings[1].size
     model_embeddings.insert(0, utils.randvec(embeddings_dimension))
 
     # add the special symbols and associated random vectors required for the model
