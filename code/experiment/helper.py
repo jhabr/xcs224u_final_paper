@@ -1,6 +1,7 @@
 from baseline.model import (
     BaselineColorEncoder, 
-    BaselineLSTMDescriber
+    BaselineLSTMDescriber,
+    BaselineDescriber
 )
 import utils.model_utils as mu
 
@@ -18,14 +19,23 @@ def create_tokens_sets(tokenizer, texts_train, texts_test, texts_test_bo, add_sp
     
     return tokens_train, tokens_test, tokens_bo
 
-def run_hiddim_options(hidden_dims, start, end, vocab, embed, colors, tokens):
+def run_hiddim_options(hidden_dims, start, end, vocab, embed, colors, tokens, unit='LSTM'):
     for dim in hidden_dims:
-        model = BaselineLSTMDescriber(
-            vocab,
-            embedding=embed,
-            early_stopping=True,
-            hidden_dim=dim
-        )
+        model = None
+        if unit is 'LSTM'
+            model = BaselineLSTMDescriber(
+                vocab,
+                embedding=embed,
+                early_stopping=True,
+                hidden_dim=dim
+            )
+        if unit is 'GRU':
+            model = BaselineDescriber(
+                vocab,
+                embedding=embed,
+                early_stopping=True,
+                hidden_dim=dim
+            )
         _ = model.fit(colors['train'][start:end], tokens['train'][start:end])
         print("train " + str(dim) + " - " + str(model.evaluate(colors['test'], tokens['test'])))
         print("bake-off " + str(dim) + " - " + str(model.evaluate(colors['bo'], tokens['bo'])))
