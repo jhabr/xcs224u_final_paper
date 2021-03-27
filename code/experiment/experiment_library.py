@@ -234,9 +234,9 @@ class ExperimentLibrary:
         )
 
     @staticmethod
-    def run_fourier_bert_last_layers_sum(debug=False):
+    def run_fourier_bert_last_four_layers_sum(debug=False):
         experiment = TransformerExperiment(
-            identifier=28,
+            identifier=45,
             name="TRANSFORMER: Fourier - Bert, Sum last layers",
             model_class=TransformerEmbeddingDescriber,
             transformer_model=TransformerType.BERT,
@@ -252,9 +252,9 @@ class ExperimentLibrary:
         )
 
     @staticmethod
-    def run_vision_bert_last_layers_sum(debug=False):
+    def run_vision_bert_last_four_layers_sum(debug=False):
         experiment = TransformerExperiment(
-            identifier=29,
+            identifier=45,
             name="TRANSFORMER: ResNet18 - Bert, Sum last layers",
             model_class=TransformerEmbeddingDescriber,
             transformer_model=TransformerType.BERT,
@@ -273,9 +273,9 @@ class ExperimentLibrary:
         )
 
     @staticmethod
-    def run_vision_fourier_bert_last_layers_sum(debug=False):
+    def run_vision_fourier_bert_last_four_layers_sum(debug=False):
         experiment = TransformerExperiment(
-            identifier=29,
+            identifier=45,
             name="TRANSFORMER: ResNet18 + Fourier - Bert, Sum last layers",
             model_class=TransformerEmbeddingDescriber,
             transformer_model=TransformerType.BERT,
@@ -296,7 +296,7 @@ class ExperimentLibrary:
     @staticmethod
     def run_vision_fourier_bert_last_layer(debug=False):
         experiment = TransformerExperiment(
-            identifier=30,
+            identifier=45,
             name="TRANSFORMER: Fourier - Bert, second last layer",
             model_class=TransformerEmbeddingDescriber,
             transformer_model=TransformerType.BERT,
@@ -307,6 +307,24 @@ class ExperimentLibrary:
 
         experiment.run(
             data_preprocessor=TransformerDataPreprocessor(tokenizer=bert_tokenizer),
+            debug=debug,
+            run_bake_off=True
+        )
+
+    @staticmethod
+    def run_vision_fourier_electra_last_four_layers_sum(debug=False):
+        experiment = TransformerExperiment(
+            identifier=47,
+            name="TRANSFORMER: Fourier - Bert, second last layer",
+            model_class=TransformerEmbeddingDescriber,
+            transformer_model=TransformerType.ELECTRA,
+            embeddings_extractor=EmbeddingExtractorType.SUMLASTFOURLAYERS
+        )
+
+        electra_tokenizer = ElectraTokenizer.from_pretrained("bert-base-cased")
+
+        experiment.run(
+            data_preprocessor=TransformerDataPreprocessor(tokenizer=electra_tokenizer),
             debug=debug,
             run_bake_off=True
         )
