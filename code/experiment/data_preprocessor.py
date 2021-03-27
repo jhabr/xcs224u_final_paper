@@ -81,6 +81,21 @@ class TransformerDataPreprocessor(DataPreprocessor):
         super().__init__(color_encoder=color_encoder, tokenizer=tokenizer)
         self.dev_dataset = self.data_loader.load_dev_dataset_with_vocab(add_special_tokens=False, output_words=True)
 
+    def prepare_dev_data(self):
+        self._check_attributes()
+
+        vocab, raw_colors_train, raw_colors_test, raw_texts_train, raw_texts_test = self.dev_dataset
+
+        tokens_train = [
+            mu.tokenize_colour_description(text, self.tokenizer, add_special_tokens=True) for text in raw_texts_train
+        ]
+
+        tokens_test = [
+            mu.tokenize_colour_description(text, self.tokenizer, add_special_tokens=True) for text in raw_texts_test
+        ]
+
+        return vocab, raw_colors_train, tokens_train, raw_colors_test, tokens_test
+
     def prepare_training_data(self):
         self._check_attributes()
 
