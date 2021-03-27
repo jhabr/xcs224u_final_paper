@@ -22,7 +22,7 @@ def create_tokens_sets(tokenizer, texts_train, texts_test, texts_test_bo, add_sp
 def run_hiddim_options(hidden_dims, start, end, vocab, embed, colors, tokens, unit='LSTM'):
     for dim in hidden_dims:
         model = None
-        if unit is 'LSTM'
+        if unit is 'LSTM':
             model = BaselineLSTMDescriber(
                 vocab,
                 embedding=embed,
