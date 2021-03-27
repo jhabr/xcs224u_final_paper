@@ -62,7 +62,7 @@ class BaselineExperiment(Experiment):
 
     def run(self, data_preprocessor: DataPreprocessor, debug=False, run_bake_off=True):
         experiment_start = time.time()
-        print(f"STARTING experiment {self.identifier}: {self.name}.\n"
+        print(f"\n\nSTARTING experiment {self.identifier}: {self.name}.\n"
               f"Start time: {TimeFormatter.format(datetime.now())}")
 
         if debug:
@@ -83,7 +83,7 @@ class BaselineExperiment(Experiment):
 
         experiment_duration = time.time() - experiment_start
         print(f"DONE experiment {self.identifier}: {self.name}.\n"
-              f"End time: {TimeFormatter.format(datetime.now())}. Duration: {experiment_duration} s.")
+              f"End time: {TimeFormatter.format(datetime.now())}. Duration: {experiment_duration} s.\n\n")
 
     def __create_embeddings_vocab(self, vocab):
         return self.embedding.create_embeddings(vocab)

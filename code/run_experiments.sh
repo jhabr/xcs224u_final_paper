@@ -5,5 +5,4 @@ if [[ -z "${PYTHONPATH}" ]]; then
   export PYTHONPATH=$(pwd)
   echo "Done."
 fi
-
-python3 experiment/runner.py > experiments.log &
+(python3 experiment/runner.py 2>&1) >> experiments.log &
