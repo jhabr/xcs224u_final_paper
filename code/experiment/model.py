@@ -93,9 +93,7 @@ class TransformerEmbeddingDecoder(Decoder):
     def get_embeddings(self, token_indices_list, target_colors=None):
         _, repeats = token_indices_list.size()
 
-        start_time = time.time()
         embeddings = self.__extract_embeddings(token_indices_list)
-        print(f"-- Embedding extraction time: {time.time() - start_time} s.")
 
         target_colors_reshaped = torch.repeat_interleave(
             target_colors, repeats, dim=0

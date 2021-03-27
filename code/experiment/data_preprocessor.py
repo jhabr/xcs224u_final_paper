@@ -83,7 +83,7 @@ class TransformerDataPreprocessor(DataPreprocessor):
 
     def prepare_training_data(self):
         self._check_attributes()
-        
+
         raw_colors_train, raw_colors_test, raw_texts_train, raw_texts_test = self.full_dataset
 
         start = time.time()
