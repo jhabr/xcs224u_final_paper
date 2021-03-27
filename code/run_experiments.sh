@@ -6,4 +6,4 @@ if [[ -z "${PYTHONPATH}" ]]; then
   echo "Done."
 fi
 
-python3 experiment/runner.py
+python3 experiment/runner.py > experiments.log &
