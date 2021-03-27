@@ -4,12 +4,11 @@ import time
 from transformers import BertTokenizer, BertModel, XLNetTokenizer, XLNetModel, RobertaTokenizer, RobertaModel, \
     ElectraTokenizer, ElectraModel
 
+import utils.model_utils as mu
 from baseline.model import BaseEmbedding, BaselineDescriber, BaselineEmbedding
-from datetime import datetime
 from experiment.data_preprocessor import DataPreprocessor, BaselineDataPreprocessor, VisionBaselineDataPreprocessor, \
     VisionTransformerDataPreprocessor, TransformerDataPreprocessor
 from experiment.model import TransformerEmbeddingDescriber, TransformerType, EmbeddingExtractorType
-import utils.model_utils as mu
 
 
 class TimeFormatter:
