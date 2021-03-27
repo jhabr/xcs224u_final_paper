@@ -1,20 +1,5 @@
 \section{Experiment}
 
-\subsection{Experiment Setup}
-To address our hypotheses we use different model compositions which are based on our target architecture.
-
-\textbf{Model for baseline}:
-Our implementation of the encoder-decoder architecture model based on assignment 4 (based on a single layer of RNN’s and GRU’s, Fourier color representation).
-
-\textbf{Models for hypothesis 1}:
-For hypothesis 1, we are using Fourier transformation encoded context colors with pre-trained and contextual embedding from the following transformer models: \texttt{BERT}, \texttt{XLNet}, \texttt{Electra}, \texttt{Roberta}.
-
-\textbf{Models for hypothesis 2}:
-For hypothesis 2, we use ResNet for contextual color representation while keeping the same model embeddings.
-
-\textbf{Models for hypothesis 3}:
-For hypothesis 3, we build on hypothesis 2 and combine different hidden layers of the transformer models. Namely, we concatenate the last four hidden layers, sum the last four hidden layers and extract the second-to-last hidden layer.
-
 \bigbreak
 what to write:
 \begin{itemize}
