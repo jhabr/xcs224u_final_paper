@@ -29,7 +29,7 @@ class DataPreprocessor:
     def prepare_bake_off_data(self):
         raise NotImplementedError
 
-    def __check_attributes(self):
+    def _check_attributes(self):
         if self.tokenizer is None or self.color_encoder is None:
             raise AttributeError("Tokenizer and/or color_encoder is None.")
 
@@ -40,7 +40,7 @@ class BaselineDataPreprocessor(DataPreprocessor):
         super().__init__(color_encoder=color_encoder, tokenizer=BaselineTokenizer())
 
     def prepare_training_data(self):
-        self.__check_attributes()
+        self._check_attributes()
 
         raw_colors_train, raw_colors_test, raw_texts_train, raw_texts_test = self.full_dataset
 
@@ -62,7 +62,7 @@ class BaselineDataPreprocessor(DataPreprocessor):
         return vocab, colors_train, tokens_train, colors_test, tokens_test
 
     def prepare_bake_off_data(self):
-        self.__check_attributes()
+        self._check_attributes()
 
         raw_colors, raw_texts = self.bake_off_dataset
         colors = [self.color_encoder.encode_color_context(colors) for colors in raw_colors]
@@ -103,7 +103,7 @@ class TransformerDataPreprocessor(DataPreprocessor):
         return colors_train, raw_texts_train, colors_test, raw_texts_test
 
     def prepare_bake_off_data(self):
-        self.__check_attributes()
+        self._check_attributes()
 
         raw_colors, raw_texts = self.bake_off_dataset
         colors = [self.color_encoder.encode_color_context(colors) for colors in raw_colors]
