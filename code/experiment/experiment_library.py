@@ -318,7 +318,7 @@ class ExperimentLibrary:
             embeddings_extractor=EmbeddingExtractorType.SUMLASTFOURLAYERS
         )
 
-        electra_tokenizer = ElectraTokenizer.from_pretrained("bert-base-cased")
+        electra_tokenizer = ElectraTokenizer.from_pretrained("google/electra-small-discriminator")
 
         experiment.run(
             data_preprocessor=VisionTransformerDataPreprocessor(
@@ -339,7 +339,7 @@ class ExperimentLibrary:
             embeddings_extractor=EmbeddingExtractorType.LAYER11
         )
 
-        electra_tokenizer = ElectraTokenizer.from_pretrained("bert-base-cased")
+        electra_tokenizer = ElectraTokenizer.from_pretrained("google/electra-small-discriminator")
 
         experiment.run(
             data_preprocessor=VisionTransformerDataPreprocessor(
@@ -360,7 +360,7 @@ class ExperimentLibrary:
             embeddings_extractor=EmbeddingExtractorType.LASTFOURLAYERS
         )
 
-        electra_tokenizer = ElectraTokenizer.from_pretrained("bert-base-cased")
+        electra_tokenizer = ElectraTokenizer.from_pretrained("google/electra-small-discriminator")
 
         experiment.run(
             data_preprocessor=VisionTransformerDataPreprocessor(
