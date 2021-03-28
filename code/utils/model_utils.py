@@ -70,6 +70,70 @@ def extract_input_embeddings_from_tokens(token_list, model, tokenizer, strip_sym
     return model_embeddings, model_vocab
 
 
+def extract_input_embeddings(colour_texts, model, tokenizer, strip_punct=True, strip_symbols=True, add_special_tokens=False):
+    """
+    Parameters
+    ----------
+    colour_texts: list of strings
+        The colours description text in a list of strings. Expected is the raw format.
+
+    model: huggingface transformer model
+        Huggingface trasnformer model to be used for extracting embeddings.
+    tokenizer: huggingface transformer tokenizer
+        Huggingface trasnformer tokenizer to be used for generating the tokens and tokens ids.
+    strip_punct: Boolean
+        If set to True the punctuation will be stripped otherwise not. Default value is True.
+    strip_symbols: Boolean
+        If set to True the special symbols used by the models will be stripped otherwise not.
+        Default value is True.
+    add_special_tokens:
+    Returns
+    -------
+        A list of vectors that is the embeddings of the model. A list of token types that reperesnet
+        the vocab.
+    """
+
+    embeddings = model.get_input_embeddings()
+    model_embeddings = []
+    model_vocab = []
+    result = dict()
+
+    # add '' to the vocab and reserve a random vector at position 0.
+    # Needed for the padding in the model
+    model_vocab.append('')
+    model_embeddings.append(utils.randvec(1))
+
+    for ct in colour_texts:
+        if strip_punct:
+            ct = strip_punctuation(ct)
+        input_ids = torch.tensor(tokenizer.encode(ct, add_special_tokens=add_special_tokens)).unsqueeze(0)
+        input_tokens = tokenizer.convert_ids_to_tokens(input_ids[0])
+        vectors = embeddings(input_ids)
+
+        for i in range(len(input_tokens)):
+            input_token = input_tokens[i]
+            if strip_symbols:
+                input_token = strip_special_symbols(input_token)
+
+            if input_token not in model_vocab:
+                model_vocab.append(input_token)
+                model_embeddings.append(vectors[0][i].detach().numpy())
+
+    # add random vector at position 0 for '' padding.
+    model_embeddings[0] = utils.randvec(len(model_embeddings[1]))
+
+    # add the special symbols and associated random vectors required for the model
+    # to understand the end and start of utterences and an uknown vector
+    model_vocab.append(UNK_SYMBOL)
+    model_vocab.append(START_SYMBOL)
+    model_vocab.append(END_SYMBOL)
+
+    for i in range(3):
+        model_embeddings.append(utils.randvec(len(model_embeddings[1])))
+
+    return model_embeddings, model_vocab
+
+
 def get_model_outputs(model, input_ids):
     """
     Parameters 
