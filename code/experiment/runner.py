@@ -12,4 +12,5 @@ if __name__ == '__main__':
     # ExperimentLibrary.run_vision_bert_last_four_layers_sum(debug=False)
     # ExperimentLibrary.run_vision_fourier_bert_last_layer(debug=False)
     ExperimentLibrary.run_vision_fourier_electra_last_four_layers_sum(debug=False)
-    ExperimentLibrary.run_vision_fourier_electra_second_last_layer(debug=False)
+    # ExperimentLibrary.run_vision_fourier_electra_second_last_layer(debug=False)
+    # ExperimentLibrary.run_vision_fourier_electra_concat_last_four_layers(debug=False)
