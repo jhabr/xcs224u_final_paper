@@ -286,7 +286,7 @@ class ExperimentLibrary:
         experiment.run(
             data_preprocessor=VisionTransformerDataPreprocessor(
                 tokenizer=bert_tokenizer,
-                fourier_embeddings=False
+                fourier_embeddings=True
             ),
             debug=debug,
             run_bake_off=True
@@ -305,7 +305,10 @@ class ExperimentLibrary:
         bert_tokenizer = BertTokenizer.from_pretrained("bert-base-cased")
 
         experiment.run(
-            data_preprocessor=TransformerDataPreprocessor(tokenizer=bert_tokenizer),
+            data_preprocessor=VisionTransformerDataPreprocessor(
+                tokenizer=bert_tokenizer,
+                fourier_embeddings=True
+            ),
             debug=debug,
             run_bake_off=True
         )
@@ -323,7 +326,31 @@ class ExperimentLibrary:
         electra_tokenizer = ElectraTokenizer.from_pretrained("bert-base-cased")
 
         experiment.run(
-            data_preprocessor=TransformerDataPreprocessor(tokenizer=electra_tokenizer),
+            data_preprocessor=VisionTransformerDataPreprocessor(
+                tokenizer=electra_tokenizer,
+                fourier_embeddings=True
+            ),
+            debug=debug,
+            run_bake_off=True
+        )
+
+    @staticmethod
+    def run_vision_fourier_electra_second_last_layer(debug=False):
+        experiment = TransformerExperiment(
+            identifier=48,
+            name="TRANSFORMER: Fourier - Bert, second last layer",
+            model_class=TransformerEmbeddingDescriber,
+            transformer_model=TransformerType.ELECTRA,
+            embeddings_extractor=EmbeddingExtractorType.LAYER11
+        )
+
+        electra_tokenizer = ElectraTokenizer.from_pretrained("bert-base-cased")
+
+        experiment.run(
+            data_preprocessor=VisionTransformerDataPreprocessor(
+                tokenizer=electra_tokenizer,
+                fourier_embeddings=True
+            ),
             debug=debug,
             run_bake_off=True
         )
