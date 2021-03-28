@@ -53,11 +53,9 @@ class Experiment:
 
 
 class BaselineExperiment(Experiment):
-    def __init__(self, embedding: BaseEmbedding, identifier: int, name: str, model_class: type, encoder_dropout=0.0,
-                 decoder_dropout=0.0):
+    def __init__(self, embedding: BaseEmbedding, identifier: int, name: str, model_class: type, decoder_dropout=0.0):
         super().__init__(identifier, name, model_class)
         self.embedding = embedding
-        self.encoder_dropout = encoder_dropout
         self.decoder_dropout = decoder_dropout
 
     def run(self, data_preprocessor: DataPreprocessor, debug=False, run_bake_off=True):
@@ -93,18 +91,16 @@ class BaselineExperiment(Experiment):
             embedding=created_embeddings,
             vocab=created_vocab,
             early_stopping=True,
-            encoder_dropout=self.encoder_dropout,
             decoder_dropout=self.decoder_dropout
         )
 
 
 class TransformerExperiment(Experiment):
     def __init__(self, transformer_model: TransformerType, embeddings_extractor: EmbeddingExtractorType,
-                 identifier: int, name: str, model_class: type, encoder_dropout=0.0, decoder_dropout=0.0):
+                 identifier: int, name: str, model_class: type, decoder_dropout=0.0):
         super().__init__(identifier, name, model_class)
         self.transformer_model = transformer_model
         self.embeddings_extractor = embeddings_extractor
-        self.encoder_dropout = encoder_dropout
         self.decoder_dropout = decoder_dropout
 
     def run(self, data_preprocessor: DataPreprocessor, debug=False, run_bake_off=True):
@@ -193,7 +189,6 @@ class ExperimentLibrary:
             name="BASELINE:  Fourier - GloVe, Dropout = 0.15",
             model_class=BaselineDescriber,
             embedding=BaselineEmbedding(),
-            encoder_dropout=0.15,
             decoder_dropout=0.15
         )
 

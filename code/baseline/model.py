@@ -119,16 +119,13 @@ class BaselineEncoder(Encoder):
     This class represents the baseline system encoder.
     """
 
-    def __init__(self, dropout=0.0, *args, **kwargs):
-        self.dropout = dropout
+    def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
         self.rnn = nn.GRU(
             input_size=self.color_dim,
             hidden_size=self.hidden_dim,
-            batch_first=True,
-            dropout=self.dropout,
-            num_layers=2 if self.dropout > 0.0 else 1
+            batch_first=True
         )
 
 
@@ -138,16 +135,13 @@ class BaselineDecoder(Decoder):
     """
 
     def __init__(self, color_dim, dropout=0.0, *args, **kwargs):
+        super().__init__(dropout=dropout, *args, **kwargs)
         self.color_dim = color_dim
-        self.dropout = dropout
-        super().__init__(*args, **kwargs)
 
         self.rnn = nn.GRU(
             input_size=self.embed_dim + self.color_dim,
             hidden_size=self.hidden_dim,
-            batch_first=True,
-            dropout=self.dropout,
-            num_layers=2 if self.dropout > 0.0 else 1
+            batch_first=True
         )
 
     def get_embeddings(self, word_seqs, target_colors=None):
@@ -202,15 +196,14 @@ class BaselineDescriber(ContextualColorDescriber):
     the decoder in form of a BaselineEncoderDecoder class.
     """
 
-    def __init__(self, encoder_dropout=0.0, decoder_dropout=0.0, *args, **kwargs):
-        self.encoder_dropout = encoder_dropout
+    def __init__(self, decoder_dropout=0.0, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
         self.decoder_dropout = decoder_dropout
         self.device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
-        super().__init__(*args, **kwargs)
 
     def build_graph(self):
         encoder = BaselineEncoder(
-            dropout=self.encoder_dropout,
             color_dim=self.color_dim,
             hidden_dim=self.hidden_dim
         )
@@ -234,6 +227,7 @@ class BaselineLSTMEncoder(Encoder):
 
     def __init__(self, color_dim, hidden_dim):
         super().__init__(color_dim, hidden_dim)
+
         self.color_dim = color_dim
         self.hidden_dim = hidden_dim
         self.rnn = nn.LSTM(

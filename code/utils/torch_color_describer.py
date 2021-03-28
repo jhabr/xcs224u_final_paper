@@ -159,6 +159,7 @@ class Decoder(nn.Module):
             vocab_size,
             embed_dim,
             hidden_dim,
+            dropout=0.0,
             embedding=None,
             freeze_embedding=False):
         """
@@ -191,6 +192,7 @@ class Decoder(nn.Module):
             input_size=self.embed_dim,
             hidden_size=self.hidden_dim,
             batch_first=True)
+        self.dropout = nn.Dropout(dropout)
         self.output_layer = nn.Linear(self.hidden_dim, self.vocab_size)
 
     def forward(self, word_seqs, seq_lengths=None, hidden=None, target_colors=None):
@@ -242,6 +244,7 @@ class Decoder(nn.Module):
                 enforce_sorted=False)
             # RNN forward:
             output, hidden = self.rnn(embs, hidden)
+            output = self.dropout(output)
             # Unpack:
             output, seq_lengths = torch.nn.utils.rnn.pad_packed_sequence(
                 output, batch_first=True)

@@ -54,9 +54,9 @@ class TransformerEmbeddingDecoder(Decoder):
     This class represents the baseline system decoder.
     """
 
-    def __init__(self, color_dim, vocab, transformer=TransformerType.BERT, extractor=EmbeddingExtractorType.STATIC,
+    def __init__(self, color_dim, vocab, dropout=0.0, transformer=TransformerType.BERT, extractor=EmbeddingExtractorType.STATIC,
                  *args, **kwargs):
-        super().__init__(*args, **kwargs)
+        super().__init__(dropout=dropout, *args, **kwargs)
 
         self.device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
         self.color_dim = color_dim
@@ -215,11 +215,12 @@ class TransformerEmbeddingDescriber(ContextualColorDescriber):
     to be used for the extraction.
     """
 
-    def __init__(self, transformer=TransformerType.BERT, extractor=EmbeddingExtractorType.STATIC, *args, **kwargs):
+    def __init__(self, decoder_dropout=0.0, transformer=TransformerType.BERT, extractor=EmbeddingExtractorType.STATIC, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
         self.transformer = transformer
         self.extractor = extractor
+        self.decoder_dropout = decoder_dropout
 
     def build_graph(self):
         encoder = Encoder(
@@ -235,7 +236,8 @@ class TransformerEmbeddingDescriber(ContextualColorDescriber):
             hidden_dim=self.hidden_dim,
             color_dim=self.color_dim,
             transformer=self.transformer,
-            extractor=self.extractor
+            extractor=self.extractor,
+            dropout=self.decoder_dropout
         )
 
         return TransformerEmbeddingEncoderDecoder(encoder, decoder)
