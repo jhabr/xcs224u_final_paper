@@ -237,17 +237,17 @@ class Decoder(nn.Module):
 
         if self.training:
             # Packed sequence for performance:
-            embs = torch.nn.utils.rnn.pack_padded_sequence(
-                embs,
-                batch_first=True,
-                lengths=seq_lengths.cpu(),
-                enforce_sorted=False)
+            # embs = torch.nn.utils.rnn.pack_padded_sequence(
+            #     embs,
+            #     batch_first=True,
+            #     lengths=seq_lengths.cpu(),
+            #     enforce_sorted=False)
             # RNN forward:
             output, hidden = self.rnn(embs, hidden)
-            output = self.dropout(output)
+            output = self.dropout(output.data)
             # Unpack:
-            output, seq_lengths = torch.nn.utils.rnn.pad_packed_sequence(
-                output, batch_first=True)
+            # output, seq_lengths = torch.nn.utils.rnn.pad_packed_sequence(
+            #     output, batch_first=True)
             # Output dense layer to get logits:
             output = self.output_layer(output)
             # Drop the final element:
