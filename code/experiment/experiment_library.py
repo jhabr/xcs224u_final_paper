@@ -127,9 +127,9 @@ class TransformerExperiment(Experiment):
         print(f"DONE experiment {self.identifier}: {self.name}.\n"
               f"End time: {TimeFormatter.format(datetime.now())}. Duration: {experiment_duration} s.")
 
-    def __create_embeddings_vocab(self, texts):
+    def __create_embeddings_vocab(self, tokens):
         model, tokenizer = self.__get_model_and_tokenizer()
-        created_embeddings, created_vocab = mu.extract_input_embeddings(texts, model, tokenizer)
+        created_embeddings, created_vocab = mu.extract_input_embeddings_from_tokens(tokens, model, tokenizer)
         return created_embeddings, created_vocab
 
     def __create_model(self, created_embeddings, created_vocab):

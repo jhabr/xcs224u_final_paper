@@ -12,7 +12,7 @@ __authors__ = "Anton Gochev, Jaro Habr, Yan Jiang, Samuel Kahn"
 __version__ = "XCS224u, Stanford, Winter 2021"
 
 
-def extract_input_embeddings(token_list, model, tokenizer, strip_punct=True, strip_symbols=True, add_special_tokens=False):
+def extract_input_embeddings_from_tokens(token_list, model, tokenizer, strip_symbols=True):
     """
     Parameters 
     ----------
@@ -43,19 +43,9 @@ def extract_input_embeddings(token_list, model, tokenizer, strip_punct=True, str
     model_embeddings = []
     model_vocab = []
 
-    # add '' to the vocab and reserve a random vector at position 0. 
-    # Needed for the padding in the model
-    # model_vocab.append('')
-    # model_embeddings.append(utils.randvec(1))
-
     for tokens in token_list:
-        # if strip_punct:
-        #     text = strip_punctuation(text)
-        # input_ids = torch.tensor(tokenizer.encode(text, add_special_tokens=add_special_tokens)).unsqueeze(0)
-
         input_tokens = tokens[1:-1]  # remove <s>, </s>
         input_ids = torch.tensor(tokenizer.convert_tokens_to_ids(input_tokens))
-        # input_tokens = tokenizer.convert_ids_to_tokens(input_ids[0])
 
         vectors = embeddings(input_ids)
 
@@ -67,21 +57,10 @@ def extract_input_embeddings(token_list, model, tokenizer, strip_punct=True, str
                 model_vocab.append(input_token)
                 model_embeddings.append(vectors[index].detach().numpy())
 
-    # add random vector at position 0 for '' padding. 
-    # model_embeddings[0] = utils.randvec(len(model_embeddings[1]))
     model_vocab.insert(0, '')
 
     embeddings_dimension = model_embeddings[1].size
     model_embeddings.insert(0, utils.randvec(embeddings_dimension))
-
-    # add the special symbols and associated random vectors required for the model
-    # to understand the end and start of utterences and an uknown vector
-    # model_vocab.append(UNK_SYMBOL)
-    # model_vocab.append(START_SYMBOL)
-    # model_vocab.append(END_SYMBOL)
-
-    # for i in range(3):
-    #     model_embeddings.append(utils.randvec(embeddings_dimension))
 
     model_vocab.extend([UNK_SYMBOL, START_SYMBOL, END_SYMBOL])
     model_embeddings.extend([utils.randvec(embeddings_dimension)] * 3)
