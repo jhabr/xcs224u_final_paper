@@ -138,8 +138,8 @@ class TransformerExperiment(Experiment):
             embedding=created_embeddings,
             transformer=self.transformer_model,
             extractor=self.embeddings_extractor,
-            early_stopping=True,
-            batch_size=256
+            early_stopping=True
+            # batch_size=256
         )
 
     def __get_model_and_tokenizer(self):
@@ -291,7 +291,7 @@ class ExperimentLibrary:
     def run_vision_fourier_bert_last_layer(debug=False):
         experiment = TransformerExperiment(
             identifier=45,
-            name="TRANSFORMER: Fourier - Bert, second last layer",
+            name="TRANSFORMER: ResNet18 + Fourier - Bert, second last layer",
             model_class=TransformerEmbeddingDescriber,
             transformer_model=TransformerType.BERT,
             embeddings_extractor=EmbeddingExtractorType.LAYER12
@@ -312,7 +312,7 @@ class ExperimentLibrary:
     def run_vision_fourier_electra_last_four_layers_sum(debug=False):
         experiment = TransformerExperiment(
             identifier=47,
-            name="TRANSFORMER: Fourier - Bert, second last layer",
+            name="TRANSFORMER: ResNet18 + Fourier - Electra, sum last four layers",
             model_class=TransformerEmbeddingDescriber,
             transformer_model=TransformerType.ELECTRA,
             embeddings_extractor=EmbeddingExtractorType.SUMLASTFOURLAYERS
@@ -333,10 +333,31 @@ class ExperimentLibrary:
     def run_vision_fourier_electra_second_last_layer(debug=False):
         experiment = TransformerExperiment(
             identifier=48,
-            name="TRANSFORMER: Fourier - Bert, second last layer",
+            name="TRANSFORMER: ResNet18 + Fourier - Electra, second last layer",
             model_class=TransformerEmbeddingDescriber,
             transformer_model=TransformerType.ELECTRA,
             embeddings_extractor=EmbeddingExtractorType.LAYER11
+        )
+
+        electra_tokenizer = ElectraTokenizer.from_pretrained("bert-base-cased")
+
+        experiment.run(
+            data_preprocessor=VisionTransformerDataPreprocessor(
+                tokenizer=electra_tokenizer,
+                fourier_embeddings=True
+            ),
+            debug=debug,
+            run_bake_off=True
+        )
+
+    @staticmethod
+    def run_vision_fourier_electra_concat_last_four_layers(debug=False):
+        experiment = TransformerExperiment(
+            identifier=49,
+            name="TRANSFORMER: ResNet18 + Fourier - Electra, concat last four layers",
+            model_class=TransformerEmbeddingDescriber,
+            transformer_model=TransformerType.ELECTRA,
+            embeddings_extractor=EmbeddingExtractorType.LASTFOURLAYERS
         )
 
         electra_tokenizer = ElectraTokenizer.from_pretrained("bert-base-cased")
