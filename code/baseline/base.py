@@ -42,5 +42,5 @@ class BaseEmbedding(metaclass=abc.ABCMeta):
                 NotImplemented)
 
     @abc.abstractmethod
-    def create_embeddings(self, vocab, dim):
+    def create_embeddings(self, vocab):
         raise NotImplementedError

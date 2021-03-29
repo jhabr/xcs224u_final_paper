@@ -90,7 +90,11 @@ class BaselineEmbedding(BaseEmbedding):
     """
     GLOVE_HOME = os.path.join(ROOT, 'data', 'embeddings', 'glove.6B')
 
-    def create_embeddings(self, vocab, dim=GloVeEmbedding.DIM_50):
+    def __init__(self, embedding_dimension=GloVeEmbedding.DIM_50):
+        super(BaselineEmbedding, self).__init__()
+        self.embedding_dimension = embedding_dimension
+
+    def create_embeddings(self, vocab):
         """
         Creates a GloVe embedding for the vocab with the selected dimension.
 
@@ -99,15 +103,12 @@ class BaselineEmbedding(BaseEmbedding):
         vocab: list of str
             Words to create embeddings for.
 
-        dim: GloVeEmbedding
-            The dimension for the glove embedding
-
         Returns
         -------
           embeddings
           expanded_vocab
         """
-        glove_base_filename = f"glove.6B.{dim.value}d.txt"
+        glove_base_filename = f"glove.6B.{self.embedding_dimension.value}d.txt"
         glove = utils.glove2dict(os.path.join(BaselineEmbedding.GLOVE_HOME, glove_base_filename))
         created_embeddings, created_vocab = utils.create_pretrained_embedding(glove, vocab)
 

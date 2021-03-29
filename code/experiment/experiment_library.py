@@ -5,7 +5,7 @@ from transformers import BertTokenizer, BertModel, XLNetTokenizer, XLNetModel, R
     ElectraTokenizer, ElectraModel
 
 import utils.model_utils as mu
-from baseline.model import BaseEmbedding, BaselineDescriber, BaselineEmbedding
+from baseline.model import BaseEmbedding, BaselineDescriber, BaselineEmbedding, GloVeEmbedding
 from experiment.data_preprocessor import DataPreprocessor, BaselineDataPreprocessor, VisionBaselineDataPreprocessor, \
     VisionTransformerDataPreprocessor, TransformerDataPreprocessor
 from experiment.model import TransformerEmbeddingDescriber, TransformerType, EmbeddingExtractorType
@@ -167,12 +167,12 @@ class TransformerExperiment(Experiment):
 class ExperimentLibrary:
 
     @staticmethod
-    def run_fourier_baseline(debug=False):
+    def run_fourier_baseline(debug=False, embedding_dimension=GloVeEmbedding.DIM_50):
         experiment = BaselineExperiment(
             identifier=1,
             name="BASELINE: Fourier - GloVe",
             model_class=BaselineDescriber,
-            embedding=BaselineEmbedding()
+            embedding=BaselineEmbedding(embedding_dimension=embedding_dimension)
         )
 
         experiment.run(
@@ -213,7 +213,7 @@ class ExperimentLibrary:
         )
 
     @staticmethod
-    def run_vision_with_fourier_baseline(debug=False):
+    def run_vision_fourier_baseline(debug=False):
         experiment = BaselineExperiment(
             identifier=16,
             name="BASELINE: ResNet18 + Fourier - GloVe",
