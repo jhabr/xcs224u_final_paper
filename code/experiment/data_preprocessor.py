@@ -81,26 +81,43 @@ class TransformerDataPreprocessor(DataPreprocessor):
         super().__init__(color_encoder=color_encoder, tokenizer=tokenizer)
         self.dev_dataset = self.data_loader.load_dev_dataset_with_vocab(add_special_tokens=False, output_words=True)
 
+    def prepare_dev_data(self):
+        self._check_attributes()
+
+        vocab, raw_colors_train, raw_colors_test, raw_texts_train, raw_texts_test = self.dev_dataset
+
+        tokens_train = [
+            mu.tokenize_colour_description(text, self.tokenizer, add_special_tokens=True) for text in raw_texts_train
+        ]
+
+        tokens_test = [
+            mu.tokenize_colour_description(text, self.tokenizer, add_special_tokens=True) for text in raw_texts_test
+        ]
+
+        return vocab, raw_colors_train, tokens_train, raw_colors_test, tokens_test
+
     def prepare_training_data(self):
+        self._check_attributes()
+
         raw_colors_train, raw_colors_test, raw_texts_train, raw_texts_test = self.full_dataset
 
         start = time.time()
         print("- Extracting color representations for training data...")
         colors_train = [self.color_encoder.encode_color_context(colors) for colors in raw_colors_train]
-        print(f"\n-- Extraction time: {(time.time() - start)} s")
-        # tokens_train = [
-        #     mu.tokenize_colour_description(text, self.tokenizer, add_special_tokens=True) for text in raw_texts_train
-        # ]
+        print(f"-- Extraction time: {(time.time() - start)} s")
+        tokens_train = [
+            mu.tokenize_colour_description(text, self.tokenizer, add_special_tokens=True) for text in raw_texts_train
+        ]
 
         start = time.time()
         print("- Extracting color representations for test data...")
         colors_test = [self.color_encoder.encode_color_context(colors) for colors in raw_colors_test]
-        print(f"\n-- Extraction time: {(time.time() - start)} s")
-        # tokens_test = [
-        #     mu.tokenize_colour_description(text, self.tokenizer, add_special_tokens=True) for text in raw_texts_test
-        # ]
+        print(f"-- Extraction time: {(time.time() - start)} s")
+        tokens_test = [
+            mu.tokenize_colour_description(text, self.tokenizer, add_special_tokens=True) for text in raw_texts_test
+        ]
 
-        return colors_train, raw_texts_train, colors_test, raw_texts_test
+        return colors_train, tokens_train, colors_test, tokens_test
 
     def prepare_bake_off_data(self):
         self._check_attributes()

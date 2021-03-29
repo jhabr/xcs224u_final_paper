@@ -1,3 +1,4 @@
+import time
 from enum import Enum
 
 import torch
@@ -9,7 +10,6 @@ from transformers import (
     RobertaTokenizer, RobertaModel
 )
 
-import utils.model_utils as mu
 from utils.torch_color_describer import (
     Encoder, Decoder,
     EncoderDecoder, ContextualColorDescriber
@@ -90,19 +90,19 @@ class TransformerEmbeddingDecoder(Decoder):
             batch_first=True
         )
 
-    def get_embeddings(self, word_seqs, target_colors=None):
-        _, repeats = word_seqs.size()
+    def get_embeddings(self, token_indices_list, target_colors=None):
+        _, repeats = token_indices_list.size()
 
-        embeddings = self.__extract_embeddings(word_seqs)
+        embeddings = self.__extract_embeddings(token_indices_list)
 
         target_colors_reshaped = torch.repeat_interleave(
             target_colors, repeats, dim=0
-        ).view(*word_seqs.shape, -1)
+        ).view(*token_indices_list.shape, -1)
 
         result = torch.cat((embeddings, target_colors_reshaped), dim=-1).to(self.device)
 
         expected = torch.empty(
-            word_seqs.shape[0],
+            token_indices_list.shape[0],
             embeddings.shape[1],
             embeddings.shape[2] + target_colors.shape[1]
         )
@@ -133,32 +133,32 @@ class TransformerEmbeddingDecoder(Decoder):
 
         return model, tokenizer
 
-    def __extract_embeddings(self, word_seqs):
+    def __extract_embeddings(self, token_indices_list):
         if self.extractor == EmbeddingExtractorType.STATIC:
-            return self.embedding(word_seqs)
+            return self.embedding(token_indices_list)
 
         if self.extractor == EmbeddingExtractorType.POSITIONAL:
-            return self.__extract_layer_embedding(word_seqs, layer_index=0)
+            return self.__extract_layer_embedding(token_indices_list, layer_index=0)
 
         if self.extractor == EmbeddingExtractorType.LAYER11:
-            return self.__extract_layer_embedding(word_seqs, layer_index=11)
+            return self.__extract_layer_embedding(token_indices_list, layer_index=11)
 
         if self.extractor == EmbeddingExtractorType.LAYER12:
-            return self.__extract_layer_embedding(word_seqs, layer_index=12)
+            return self.__extract_layer_embedding(token_indices_list, layer_index=12)
 
         if self.extractor == EmbeddingExtractorType.STATICANDLAYER12:
-            last_layer_embeddings = self.__extract_layer_embedding(word_seqs, layer_index=12)
-            return self.__combine_layers_with_static_embeddings(word_seqs, last_layer_embeddings)
+            last_layer_embeddings = self.__extract_layer_embedding(token_indices_list, layer_index=12)
+            return self.__combine_layers_with_static_embeddings(token_indices_list, last_layer_embeddings)
 
         if self.extractor == EmbeddingExtractorType.LASTFOURLAYERS:
-            return self.__combine_last_four_layers(word_seqs)
+            return self.__combine_last_four_layers(token_indices_list)
             # return self.__combine_layers_with_static_embeddings(word_seqs, four_layers)
 
         if self.extractor == EmbeddingExtractorType.SUMLASTFOURLAYERS:
-            return self.__sum_layers(word_seqs, number_of_layers=4)
+            return self.__sum_layers(token_indices_list, number_of_layers=4)
 
         if self.extractor == EmbeddingExtractorType.SUMALLLAYERS:
-            return self.__sum_layers(word_seqs, number_of_layers=12)
+            return self.__sum_layers(token_indices_list, number_of_layers=12)
 
     def __combine_last_four_layers(self, word_seqs):
         # print('in combine')
@@ -178,31 +178,35 @@ class TransformerEmbeddingDecoder(Decoder):
     def __combine_layers_with_static_embeddings(self, word_seqs, last_layer_embeddings):
         return torch.cat((self.embedding(word_seqs), last_layer_embeddings), dim=-1)
 
-    def __extract_layer_embedding(self, word_seqs, layer_index):
-
+    def __extract_layer_embedding(self, token_indices_list, layer_index):
         embeddings = []
-        for ws in word_seqs:
-            utterence = []
-            for i in ws:
-                utterence.append(self.vocab[i])
-            input_ids = torch.LongTensor(self.tokenizer.convert_tokens_to_ids(utterence)).unsqueeze(0).to(self.device)
+
+        for token_indices in token_indices_list:
+            tokens = []
+            for token_index in token_indices:
+                tokens.append(self.vocab[token_index])
+            input_ids = torch.LongTensor(self.tokenizer.convert_tokens_to_ids(tokens)).unsqueeze(0).to(self.device)
             outputs = self.model(input_ids=input_ids, output_hidden_states=True)
             embeddings.append(outputs.hidden_states[layer_index].squeeze(0))
 
         return torch.stack(embeddings)
 
-    def __sum_layers(self, word_seqs, number_of_layers):
-        start_index = 13 - number_of_layers
+    def __sum_layers(self, token_indices_list, number_of_layers):
+        total_layers_count = 13  # we know that from the transformer architecture
+        start_index = total_layers_count - number_of_layers
         embeddings = []
-        for ws in word_seqs:
-            utterence = []
-            for i in ws:
-                utterence.append(self.vocab[i])
-            input_ids = torch.LongTensor(self.tokenizer.convert_tokens_to_ids(utterence)).unsqueeze(0).to(self.device)
+
+        for token_indices in token_indices_list:
+            tokens = []
+            for token_index in token_indices:
+                tokens.append(self.vocab[token_index])
+            input_ids = torch.LongTensor(self.tokenizer.convert_tokens_to_ids(tokens)).unsqueeze(0).to(self.device)
             outputs = self.model(input_ids=input_ids, output_hidden_states=True)
-            result = outputs.hidden_states[start_index].squeeze(0)
-            for i in range(number_of_layers - 1):
-                result = result + outputs.hidden_states[start_index + i + 1].squeeze(0)
+            # result = outputs.hidden_states[start_index].squeeze(0)
+            result = 0
+
+            for layer_index in range(start_index, total_layers_count):
+                result += outputs.hidden_states[layer_index].squeeze(0)
             embeddings.append(result)
 
         return torch.stack(embeddings)

@@ -1,15 +1,14 @@
-import abc
 import time
+from datetime import datetime
 
 from transformers import BertTokenizer, BertModel, XLNetTokenizer, XLNetModel, RobertaTokenizer, RobertaModel, \
     ElectraTokenizer, ElectraModel
 
+import utils.model_utils as mu
 from baseline.model import BaseEmbedding, BaselineDescriber, BaselineEmbedding
-from datetime import datetime
 from experiment.data_preprocessor import DataPreprocessor, BaselineDataPreprocessor, VisionBaselineDataPreprocessor, \
     VisionTransformerDataPreprocessor, TransformerDataPreprocessor
 from experiment.model import TransformerEmbeddingDescriber, TransformerType, EmbeddingExtractorType
-import utils.model_utils as mu
 
 
 class TimeFormatter:
@@ -60,7 +59,7 @@ class BaselineExperiment(Experiment):
 
     def run(self, data_preprocessor: DataPreprocessor, debug=False, run_bake_off=True):
         experiment_start = time.time()
-        print(f"STARTING experiment {self.identifier}: {self.name}.\n"
+        print(f"\n\nSTARTING experiment {self.identifier}: {self.name}.\n"
               f"Start time: {TimeFormatter.format(datetime.now())}")
 
         if debug:
@@ -81,7 +80,7 @@ class BaselineExperiment(Experiment):
 
         experiment_duration = time.time() - experiment_start
         print(f"DONE experiment {self.identifier}: {self.name}.\n"
-              f"End time: {TimeFormatter.format(datetime.now())}. Duration: {experiment_duration} s.")
+              f"End time: {TimeFormatter.format(datetime.now())}. Duration: {experiment_duration} s.\n\n")
 
     def __create_embeddings_vocab(self, vocab):
         return self.embedding.create_embeddings(vocab)
@@ -128,9 +127,9 @@ class TransformerExperiment(Experiment):
         print(f"DONE experiment {self.identifier}: {self.name}.\n"
               f"End time: {TimeFormatter.format(datetime.now())}. Duration: {experiment_duration} s.")
 
-    def __create_embeddings_vocab(self, texts):
+    def __create_embeddings_vocab(self, tokens):
         model, tokenizer = self.__get_model_and_tokenizer()
-        created_embeddings, created_vocab = mu.extract_input_embeddings(texts, model, tokenizer)
+        created_embeddings, created_vocab = mu.extract_input_embeddings_from_tokens(tokens, model, tokenizer)
         return created_embeddings, created_vocab
 
     def __create_model(self, created_embeddings, created_vocab):
@@ -139,8 +138,8 @@ class TransformerExperiment(Experiment):
             embedding=created_embeddings,
             transformer=self.transformer_model,
             extractor=self.embeddings_extractor,
-            early_stopping=True,
-            batch_size=32
+            early_stopping=True
+            # batch_size=256
         )
 
     def __get_model_and_tokenizer(self):
@@ -229,9 +228,9 @@ class ExperimentLibrary:
         )
 
     @staticmethod
-    def run_fourier_bert_last_layers_sum(debug=False):
+    def run_fourier_bert_last_four_layers_sum(debug=False):
         experiment = TransformerExperiment(
-            identifier=28,
+            identifier=45,
             name="TRANSFORMER: Fourier - Bert, Sum last layers",
             model_class=TransformerEmbeddingDescriber,
             transformer_model=TransformerType.BERT,
@@ -247,9 +246,9 @@ class ExperimentLibrary:
         )
 
     @staticmethod
-    def run_vision_bert_last_layers_sum(debug=False):
+    def run_vision_bert_last_four_layers_sum(debug=False):
         experiment = TransformerExperiment(
-            identifier=29,
+            identifier=45,
             name="TRANSFORMER: ResNet18 - Bert, Sum last layers",
             model_class=TransformerEmbeddingDescriber,
             transformer_model=TransformerType.BERT,
@@ -268,9 +267,9 @@ class ExperimentLibrary:
         )
 
     @staticmethod
-    def run_vision_fourier_bert_last_layers_sum(debug=False):
+    def run_vision_fourier_bert_last_four_layers_sum(debug=False):
         experiment = TransformerExperiment(
-            identifier=29,
+            identifier=45,
             name="TRANSFORMER: ResNet18 + Fourier - Bert, Sum last layers",
             model_class=TransformerEmbeddingDescriber,
             transformer_model=TransformerType.BERT,
@@ -282,7 +281,91 @@ class ExperimentLibrary:
         experiment.run(
             data_preprocessor=VisionTransformerDataPreprocessor(
                 tokenizer=bert_tokenizer,
-                fourier_embeddings=False
+                fourier_embeddings=True
+            ),
+            debug=debug,
+            run_bake_off=True
+        )
+
+    @staticmethod
+    def run_vision_fourier_bert_last_layer(debug=False):
+        experiment = TransformerExperiment(
+            identifier=45,
+            name="TRANSFORMER: ResNet18 + Fourier - Bert, second last layer",
+            model_class=TransformerEmbeddingDescriber,
+            transformer_model=TransformerType.BERT,
+            embeddings_extractor=EmbeddingExtractorType.LAYER12
+        )
+
+        bert_tokenizer = BertTokenizer.from_pretrained("bert-base-cased")
+
+        experiment.run(
+            data_preprocessor=VisionTransformerDataPreprocessor(
+                tokenizer=bert_tokenizer,
+                fourier_embeddings=True
+            ),
+            debug=debug,
+            run_bake_off=True
+        )
+
+    @staticmethod
+    def run_vision_fourier_electra_last_four_layers_sum(debug=False):
+        experiment = TransformerExperiment(
+            identifier=47,
+            name="TRANSFORMER: ResNet18 + Fourier - Electra, sum last four layers",
+            model_class=TransformerEmbeddingDescriber,
+            transformer_model=TransformerType.ELECTRA,
+            embeddings_extractor=EmbeddingExtractorType.SUMLASTFOURLAYERS
+        )
+
+        electra_tokenizer = ElectraTokenizer.from_pretrained("google/electra-small-discriminator")
+
+        experiment.run(
+            data_preprocessor=VisionTransformerDataPreprocessor(
+                tokenizer=electra_tokenizer,
+                fourier_embeddings=True
+            ),
+            debug=debug,
+            run_bake_off=True
+        )
+
+    @staticmethod
+    def run_vision_fourier_electra_second_last_layer(debug=False):
+        experiment = TransformerExperiment(
+            identifier=48,
+            name="TRANSFORMER: ResNet18 + Fourier - Electra, second last layer",
+            model_class=TransformerEmbeddingDescriber,
+            transformer_model=TransformerType.ELECTRA,
+            embeddings_extractor=EmbeddingExtractorType.LAYER11
+        )
+
+        electra_tokenizer = ElectraTokenizer.from_pretrained("google/electra-small-discriminator")
+
+        experiment.run(
+            data_preprocessor=VisionTransformerDataPreprocessor(
+                tokenizer=electra_tokenizer,
+                fourier_embeddings=True
+            ),
+            debug=debug,
+            run_bake_off=True
+        )
+
+    @staticmethod
+    def run_vision_fourier_electra_concat_last_four_layers(debug=False):
+        experiment = TransformerExperiment(
+            identifier=49,
+            name="TRANSFORMER: ResNet18 + Fourier - Electra, concat last four layers",
+            model_class=TransformerEmbeddingDescriber,
+            transformer_model=TransformerType.ELECTRA,
+            embeddings_extractor=EmbeddingExtractorType.LASTFOURLAYERS
+        )
+
+        electra_tokenizer = ElectraTokenizer.from_pretrained("google/electra-small-discriminator")
+
+        experiment.run(
+            data_preprocessor=VisionTransformerDataPreprocessor(
+                tokenizer=electra_tokenizer,
+                fourier_embeddings=True
             ),
             debug=debug,
             run_bake_off=True
