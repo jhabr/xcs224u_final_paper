@@ -29,7 +29,7 @@ class Experiment:
         self.model_class = model_class
         self.model = None
 
-    def run(self, data_preprocessor: DataPreprocessor, debug=False, run_bake_off=True):
+    def run(self, data_preprocessor: DataPreprocessor, hidden_dim=50, debug=False, run_bake_off=True):
         raise NotImplementedError
 
     def _train_model(self, colors_train, tokens_train):
@@ -57,7 +57,7 @@ class BaselineExperiment(Experiment):
         self.embedding = embedding
         self.decoder_dropout = decoder_dropout
 
-    def run(self, data_preprocessor: DataPreprocessor, debug=False, run_bake_off=True):
+    def run(self, data_preprocessor: DataPreprocessor, hidden_dim=50, debug=False, run_bake_off=True):
         experiment_start = time.time()
         print(f"\n\nSTARTING experiment {self.identifier}: {self.name}.\n"
               f"Start time: {TimeFormatter.format(datetime.now())}")
@@ -68,7 +68,7 @@ class BaselineExperiment(Experiment):
             vocab, colors_train, tokens_train, colors_test, tokens_test = data_preprocessor.prepare_training_data()
 
         created_embeddings, created_vocab = self.__create_embeddings_vocab(vocab)
-        self.model = self.__create_model(created_embeddings, created_vocab)
+        self.model = self.__create_model(created_embeddings, created_vocab, hidden_dim=hidden_dim)
         assert self.model is not None
 
         self._train_model(colors_train, tokens_train)
@@ -85,12 +85,13 @@ class BaselineExperiment(Experiment):
     def __create_embeddings_vocab(self, vocab):
         return self.embedding.create_embeddings(vocab)
 
-    def __create_model(self, created_embeddings, created_vocab):
+    def __create_model(self, created_embeddings, created_vocab, hidden_dim):
         return self.model_class(
             embedding=created_embeddings,
             vocab=created_vocab,
             early_stopping=True,
-            decoder_dropout=self.decoder_dropout
+            decoder_dropout=self.decoder_dropout,
+            hidden_dim=hidden_dim
         )
 
 
@@ -102,7 +103,7 @@ class TransformerExperiment(Experiment):
         self.embeddings_extractor = embeddings_extractor
         self.decoder_dropout = decoder_dropout
 
-    def run(self, data_preprocessor: DataPreprocessor, debug=False, run_bake_off=True):
+    def run(self, data_preprocessor: DataPreprocessor, hidden_dim=50, debug=False, run_bake_off=True):
         experiment_start = time.time()
         print(f"STARTING experiment {self.identifier}: {self.name}.\n"
               f"Start time: {TimeFormatter.format(datetime.now())}")
@@ -113,7 +114,7 @@ class TransformerExperiment(Experiment):
             colors_train, tokens_train, colors_test, tokens_test = data_preprocessor.prepare_training_data()
 
         created_embeddings, created_vocab = self.__create_embeddings_vocab(tokens_train)
-        self.model = self.__create_model(created_embeddings, created_vocab)
+        self.model = self.__create_model(created_embeddings, created_vocab, hidden_dim)
         assert self.model is not None
 
         self._train_model(colors_train, tokens_train)
@@ -132,13 +133,14 @@ class TransformerExperiment(Experiment):
         created_embeddings, created_vocab = mu.extract_input_embeddings_from_tokens(tokens, model, tokenizer)
         return created_embeddings, created_vocab
 
-    def __create_model(self, created_embeddings, created_vocab):
-        return TransformerEmbeddingDescriber(
+    def __create_model(self, created_embeddings, created_vocab, hidden_dim):
+        return self.model_class(
             vocab=created_vocab,
             embedding=created_embeddings,
             transformer=self.transformer_model,
             extractor=self.embeddings_extractor,
-            early_stopping=True
+            early_stopping=True,
+            hidden_dim=hidden_dim
             # batch_size=256
         )
 
@@ -167,7 +169,7 @@ class TransformerExperiment(Experiment):
 class ExperimentLibrary:
 
     @staticmethod
-    def run_fourier_baseline(debug=False, embedding_dimension=GloVeEmbedding.DIM_50):
+    def run_fourier_baseline(debug=False, hidden_dim=50, embedding_dimension=GloVeEmbedding.DIM_50):
         experiment = BaselineExperiment(
             identifier=1,
             name="BASELINE: Fourier - GloVe",
@@ -178,7 +180,8 @@ class ExperimentLibrary:
         experiment.run(
             data_preprocessor=BaselineDataPreprocessor(),
             debug=debug,
-            run_bake_off=True
+            run_bake_off=True,
+            hidden_dim=hidden_dim
         )
 
     @staticmethod
