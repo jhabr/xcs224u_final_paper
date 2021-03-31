@@ -50,7 +50,7 @@ Listener accuracy and BLEU score are used for evaluating the performance of the 
 \[c^{*} = argmax_{c \in C} P_{s} (utterance | c)\]
 
 \par
-where \(P_{s}\) is the describer model and \(C\) is the set of all permutations of all three colors in the color context. We take \(c^{*}\) to be a correct prediction if it is one where the target is in the privileged final position.
+where \(P_{s}\) is the describer model and \(C\) is the set of all permutations of all three colors in the color context. We take \(c^{*}\) to be a correct prediction if it is one where the target is in the privileged final position \citep{potts-2020-colors}.
 
 \par
 The listener's accuracy assesses the ability of the model to communicate with itself and this can lead to generating utterances that are far from proper English. BLEU score is used to ensure that this situation doesn’t happen.
