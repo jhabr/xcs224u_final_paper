@@ -1,6 +1,6 @@
 \section{Experiment}
 
-Table INSERT TABLE NUMBER summarizes our results. We list our results in order of number of parameters in the model. This is a combination of trainable and untrainable parameters, as the core architecture of our models is generally a flavor of a recurrent neural network sequence-to-sequence model. The core architectural differences are captured by the method we use for embedding words and colors, while our encoder-decoder architecture generally stays the same. We use GRU as a default cell for all experiments. We also used an LSTM cell for the experiments that have shown best model performance to evaluate how a LSTM affects the performance of the models in comparison with GRU.
+Table \ref{table:heatmap} summarizes our results. We list our results in order of number of parameters in the model. This is a combination of trainable and untrainable parameters, as the core architecture of our models is generally a flavor of a recurrent neural network sequence-to-sequence model. The core architectural differences are captured by the method we use for embedding words and colors, while our encoder-decoder architecture generally stays the same. We use GRU as a default cell for all experiments. We also used an LSTM cell for the experiments that have shown best model performance to evaluate how a LSTM affects the performance of the models in comparison with GRU.
 
 \par
 We experimented with four different hidden dimensions (hidden\_size) for the RNN cells. We used 50 (default for all experiments) , 100, 150, 250 to determine what hidden dimensions will have the most positive effect on the model performance. Those experiments were conducted on models with RoBERTa, BERT, XLNet or ELECTRA pre-trained word embeddings and Fourier transformed or ResNet concatenated with Fourier transformed colour embeddings. A subset of the train dataset (8,000 records) was used for those experiments. We limited the number of experiments due to time and budget limitations. Finally, we trained and tested the best performing models with a hidden dimension of 250 as our experiments showed that a higher dimension has a positive effect on the model output.
@@ -58,9 +58,12 @@ The listener's accuracy assesses the ability of the model to communicate with it
 \par
 We consider both listener accuracy and BLEU score, with equal performance when evaluating the models and therefore, a model is consider better performing if both scores are higher.
 
-\bigbreak
-[table goes here]
-
+\begin{table*}[ht]
+\centering
+\includegraphics[width=\textwidth]{assets/heatmap.png}
+\caption[Heatmap]{Results from testing...}
+\label{table:heatmap}
+\end{table*}
 
 
 % \bigbreak
