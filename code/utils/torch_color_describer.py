@@ -192,7 +192,7 @@ class Decoder(nn.Module):
             input_size=self.embed_dim,
             hidden_size=self.hidden_dim,
             batch_first=True)
-        self.dropout = nn.Dropout(dropout)
+        self.dropout = nn.Dropout(dropout) if dropout > 0.0 else None
         self.output_layer = nn.Linear(self.hidden_dim, self.vocab_size)
 
     def forward(self, word_seqs, seq_lengths=None, hidden=None, target_colors=None):
@@ -236,18 +236,23 @@ class Decoder(nn.Module):
         embs = self.get_embeddings(word_seqs, target_colors=target_colors)
 
         if self.training:
-            # Packed sequence for performance:
-            # embs = torch.nn.utils.rnn.pack_padded_sequence(
-            #     embs,
-            #     batch_first=True,
-            #     lengths=seq_lengths.cpu(),
-            #     enforce_sorted=False)
-            # RNN forward:
-            output, hidden = self.rnn(embs, hidden)
-            output = self.dropout(output.data)
-            # Unpack:
-            # output, seq_lengths = torch.nn.utils.rnn.pad_packed_sequence(
-            #     output, batch_first=True)
+            if self.dropout is None:
+                # Packed sequence for performance:
+                embs = torch.nn.utils.rnn.pack_padded_sequence(
+                    embs,
+                    batch_first=True,
+                    lengths=seq_lengths.cpu(),
+                    enforce_sorted=False)
+                # RNN forward:
+                output, hidden = self.rnn(embs, hidden)
+                # Unpack:
+                output, seq_lengths = torch.nn.utils.rnn.pad_packed_sequence(
+                    output, batch_first=True)
+            else:
+                # RNN forward:
+                output, hidden = self.rnn(embs, hidden)
+                output = self.dropout(output.data)
+
             # Output dense layer to get logits:
             output = self.output_layer(output)
             # Drop the final element:
