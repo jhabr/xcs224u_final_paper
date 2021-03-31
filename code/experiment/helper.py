@@ -1,3 +1,4 @@
+import os
 from baseline.model import (
     BaselineColorEncoder, 
     BaselineLSTMDescriber,
@@ -24,14 +25,14 @@ def run_hiddim_options(hidden_dims, start, end, vocab, embed, colors, tokens, un
         model = None
         if unit is 'LSTM':
             model = BaselineLSTMDescriber(
-                vocab,
+                vocab=vocab,
                 embedding=embed,
                 early_stopping=True,
                 hidden_dim=dim
             )
         if unit is 'GRU':
             model = BaselineDescriber(
-                vocab,
+                vocab=vocab,
                 embedding=embed,
                 early_stopping=True,
                 hidden_dim=dim
@@ -39,3 +40,16 @@ def run_hiddim_options(hidden_dims, start, end, vocab, embed, colors, tokens, un
         _ = model.fit(colors['train'][start:end], tokens['train'][start:end])
         print("train " + str(dim) + " - " + str(model.evaluate(colors['test'], tokens['test'])))
         print("bake-off " + str(dim) + " - " + str(model.evaluate(colors['bo'], tokens['bo'])))
+
+def load_vscores(path):
+    vscores = dict()
+    with os.scandir(path) as entries:
+        for entry in entries:
+            if entry.is_file():
+                file_name = os.path.splitext(entry.name)[0]
+                file_name = file_name.replace('_vscores', '')
+                with open(entry.path) as file:
+                    content = file.read()
+                    content = [ float(value) for value in content.lstrip('[').rstrip(']').split(',') ]
+                    vscores[file_name] = content
+    return vscores 
