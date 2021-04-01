@@ -6,33 +6,7 @@ The study of \citep{monroe-2017-colors} set the cornerstone for this work on gro
 Four different transformers that make use of attention which improve on different inefficiencies of BERT. To solve the data corruption and discrepancy problems of the BERT-based transformers caused by [MASK] token, XLNet uses an autoregressive language model, and ELECTRA uses a novel training scheme reminiscent of a Generative Adversarial Network (GAN). RoBERTa implements a new dynamic masking strategy to be able to pretrain on more data.
 
 \par
-Related work tackles the challenge of connecting natural language understanding and vision in a variety of different ways. \citep{karpathy-2014-image_descriptions} focuses on generating concise descriptions from images by using deep neural networks. The objects were detected in every image with a region convolutional neural network, which was  pre-trained and fine-tuned based on ImageNet. DALL·E makes the connection from the other direction generating complete images from text by using decoder only achriteachure. It uses a trained transformer to autoregressively model the text and image tokens as a single stream of data. Lastly, the work of \citep{monroe-2017-colors} can be seen as a special case of image captioning, with the encoder part enriched with Fourier-transformed color representation.
+The ability of humans to describe images with natural language and hence connect those two dimensions in a fluent way is the guiding motivation for the exploration of the multimodal space. The work by \citep{karpathy-2014-image_descriptions} focuses on generating concise descriptions from images by using deep neural networks. To create dense descriptions of visual data, the authors present a new multimodal recurrent neural network generative model which uses a region convolutional neural network (RCNN) pre-trained on ImageNet \citep{deng-2009-imagenet} to detect objects in every image. The generative model was trained to predict the next word given the previous context word and the probability distribution of the words in the vocabulary, denoting the start and end of the sequence with a special START and END token. The work of \citep{monroe-2017-colors} can be seen as a special case of image captioning, with the encoder part enriched with Fourier-transformed color representation. Lastly, a more recent work published by \citep{openai-2020-dalle} presents a generative multimodal model called DALL·E, capable of generating or completing images from text. It uses a trained transformer to autoregressively model the text and image tokens as a single stream of data.
 
 \par
-In our work, we enhanced the color representation of a simplified version of the original model by \citep{monroe-2017-colors} consisting of an encoder to encode the colors and a decoder to output a color description with pre-trained and contextual word embeddings -and pre-trained convolutional model ResNet18, which should contain richer grounding color information compared with Fourier-transformed color representations.
-
-% \begin{itemize}
-%   \item based on lit review
-%   \item organize paper into groups I want to cover =$>$ relation to my work
-%   \item for each group, articulate thematic unity, paper achievements =$>$ relation to my work =$>$ gives context, differentiation from prior work
-% \end{itemize}
-
-% Papers:
-
-% \begin{itemize}
-%   \item Attention is all you need: \citep{vaswani-2017-attention}.
-%   \item Colors in Context: \citep{monroe-2017-colors}.
-%   \item Compositional Color Descriptions: \citep{monroe-2016-compositional}.
-%   \item GPT-3: \citep{brown-2020-gpt3}.
-%   \item Generating Image Descriptions: \citep{karpathy-2014-image_descriptions}.
-%   \item OpenAI Dall-E: \citep{openai-2020-dalle}.
-%   \item Huggingface: \citep{wolf-2019-huggingface}.
-%   \item ELECTRA: \citep{clark-2020-electra}.
-%   \item XLNet: \citep{yang-2019-xlnet}.
-%   \item RoBERTa: \citep{liu-2019-roberta}.
-%   \item Contextual Word Representation: \citep{smith-2019-contextual}.
-%   \item Reasoning About Pragmatics with Neural Listeners and Speakers: \citep{andreas-2016-reasoning}.
-%   \item LXMERT: \citep{tan-2019-lxmert}.
-%   \item ImageNet: \citep{deng-2009-imagenet}.
-%   \item ImageNet dataset: \citep{imagenet-2019-dataset}.
-% \end{itemize}
+In our work, we enhanced the color representation of the original model by \citep{monroe-2017-colors}. with an encoder based on convolutional neural networks like ResNet18 and encoded the word representations as pre-trained and contextual word embeddings based on transformer models like BERT, ELECTRA, RoBERTa or XLNet. Since ResNet18 and ResNet50 have been pre-trained on the ImageNet \citep{imagenet-2019-dataset}, we evaluate their embedded richer grounding color information compared to pure Fourier-transformed color representations.
