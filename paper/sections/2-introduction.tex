@@ -1,27 +1,12 @@
 \section{Introduction}
 
-In recent years, attention-based models and especially transformers have proven to be the best performing approaches in the area of natural language processing (NLP).
+Human language is highly contextual and often presumes prior knowledge of a given topic. Meaning of words is mostly implicit and is inferred from context. Such interpretations are difficult for machine learning models as context is not only represented by words but it also assumes as a common world understanding \citep{monroe-2017-colors}. In reality, words can have different meanings in different contexts and hence cannot be represented with a single vector. This obvervation let to the introduction of contextual word representations based on word tokens and has been widely adopted by attention-based models and especially transformers like e.g. BERT, ELECTRA or XLNet \citep{smith-2019-contextual,vaswani-2017-attention}.
 
 \par
-In this paper, our core hypothesis is that transformers’ pretrained and contextual embeddings will enhance the word representations, therefore enhancing the performance of task of color description. We also hypothesise that using a convolutional neural network (CNN) to generate color embeddings will have a positive effect on the performance.  To test the hypothesis,  we applied pretrained and contextual word embeddings from BERT, RoBERTa, ELECTRA and XLNet models to the task, combined with a color representation produced by ResNet , and compare them to the baseline system developed in assignment 4 of the XCS224u course. We further define our core hypotheses into three parts and tested them in this work.
+Visual referring tasks like color or image descriptions are very suitable for language understanding tasks as they exercise this complex process of grounding in the environment and in our mental models of each other \citep{monroe-2017-colors, karpathy-2014-image_descriptions}.
 
 \par
-The first hypothesis is pretrained and contextual embeddings will perform better than pretrained word representations like GloVe on the task.
+The central hypothesis of this paper is that rich color encondings as represented in convolutional neural networks (CNN) as well pre-trained and contextual word embeddings as used by attention based architectures such as transformers will help improve the performance on the color description task presented in \citep{monroe-2017-colors}. We hypothesize that those higher dimensional and more complex representations encode some useful information about the world and the given context from which a grounded communication task will be able to benefit.
 
 \par
-The second hypothesis is that the models in the first hypothesis can be further enhanced by replacing the original color representation with rich color representations produced by ResNet. Additionally, hyperparameters tuning could further  boost the model performance.
-
-\par
-The third hypothesis is that different combinations (addition, mean, etc.) of the transformer’s hidden layers will improve the performance of the whole system.
-
-\par
-We found that: 1) Complex color and text representations don’t necessarily perform better than the baseline model on the given task, 2) LSTM generally showed better performance than GRU as the sequence-to-sequence architecture, which is likely due to capturing the long-term dependencies of the utterances, 3) Hyperparameters (e.g, hidden dimensions) tuning also significantly enhanced model accuracy and Bleu score.
-
-% \begin{itemize}
-%   \item area of field of work
-%   \item "The central hypothesis of this paper is..."
-%   \item concepts, building blocks of the hypothesis
-%   \item why \emph{this} hypothesis?
-%   \item steps to address hypothesis
-%   \item central findings of paper
-% \end{itemize}
+To address our hypothesis we build upon the sequence-to-sequence model presented by \citep{monroe-2017-colors}. As a first step we add a transfomer-based color descriptions encoder. Inspired by feature representations in computer vision, we then complement the model architecture with a ResNet color encoder pre-trained on ImageNet. This helps us to embed additional grounding information. To find the best performing setup, we finally perform a number of different operations on the transfomer encoder's hidden states, accompanied by a final fine-tuning along a defined hyperparameter space. The code of our work can be viewed on GitHub\footnote{\url{https://github.com/jhabr/xcs224u_final_paper}}.
