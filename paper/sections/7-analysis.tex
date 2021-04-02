@@ -5,7 +5,7 @@
 Intuitively we would think that making our architecture more complex and adding richer embeddings would capture the nuances of generating utterances from color embeddings. We do demonstrate this is the case in certain architectures, but adding more complexity does not necessarily lead to better performance.
 
 \par
-We find that mapping our 3-dimensional color embeddings to 54 dimensions using a Fourier transformation consistently performs the best. This is a surprising result as embedding our colors using a convolutional neural network, such as a residual network, embeds much richer semantic information. There are a few explanations for why this might be.
+We find that mapping our 3-dimensional color embeddings to 54 dimensions using a Fourier transformation consistently performs the best. This is a surprising result as embedding our colors using a convolutional neural network, such as a residual network, contains much richer semantic information. There are a few explanations for why this might be.
 
 \par
 The first explanation is that while residual networks can capture rich semantic information as we encode a color with it, it is not appropriate for embedding something as simple as a color. Each layer of convolutional neural networks are supposed to find lower level features in an input image, but with a solid color there are effectively no low level features to find. So it’s likely that using the residual network as a feature extractor is actually embedding unnecessary noise into each color. We should also note that the residual networks we use in our experiments were trained on the ImageNet dataset, which requires the network to model much more complicated visual semantics than classifying a single color would.
