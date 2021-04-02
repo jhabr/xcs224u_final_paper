@@ -32,6 +32,8 @@ class EmbeddingExtractorType(Enum):
     SUMLASTFOURLAYERS = 115
     LAYER11 = 116
     SUMALLLAYERS = 117
+    STATICANDCLS = 118
+    CLS = 119
 
 
 class TransformerEmbeddingEncoder(Encoder):
@@ -69,7 +71,8 @@ class TransformerEmbeddingDecoder(Decoder):
         input_size = self.embed_dim + self.color_dim
         # input_size taking into account a combination of two embeddings (static and contextual)
         # with the same dimension
-        if extractor == EmbeddingExtractorType.STATICANDLAYER12:
+        if extractor == EmbeddingExtractorType.STATICANDLAYER12 \
+            or extractor == EmbeddingExtractorType.STATICANDCLS:
             input_size = self.embed_dim * 2 + self.color_dim
             # input_size taking into account the dimensions of the last four layers
         if extractor == EmbeddingExtractorType.LASTFOURLAYERS:
@@ -152,31 +155,31 @@ class TransformerEmbeddingDecoder(Decoder):
 
         if self.extractor == EmbeddingExtractorType.LASTFOURLAYERS:
             return self.__combine_last_four_layers(token_indices_list)
-            # return self.__combine_layers_with_static_embeddings(word_seqs, four_layers)
 
         if self.extractor == EmbeddingExtractorType.SUMLASTFOURLAYERS:
             return self.__sum_layers(token_indices_list, number_of_layers=4)
 
         if self.extractor == EmbeddingExtractorType.SUMALLLAYERS:
             return self.__sum_layers(token_indices_list, number_of_layers=12)
+        
+        if self.extractor == EmbeddingExtractorType.STATICANDCLS:
+            return self.__static_and_cls(token_indices_list)
 
-    def __combine_last_four_layers(self, word_seqs):
-        # print('in combine')
-        layer_12 = self.__extract_layer_embedding(word_seqs, layer_index=12)
-        layer_11 = self.__extract_layer_embedding(word_seqs, layer_index=11)
-        layer_10 = self.__extract_layer_embedding(word_seqs, layer_index=10)
-        layer_9 = self.__extract_layer_embedding(word_seqs, layer_index=9)
-        # print(layer_12.shape)
-        # print(layer_11.shape)
-        # print(layer_10.shape)
-        # print(layer_9.shape)
+        if self.extractor == EmbeddingExtractorType.CLS:
+            return self.__static_and_cls(token_indices_list, include_static=False)
+
+    def __combine_last_four_layers(self, token_indices_list):
+        layer_12 = self.__extract_layer_embedding(token_indices_list, layer_index=12)
+        layer_11 = self.__extract_layer_embedding(token_indices_list, layer_index=11)
+        layer_10 = self.__extract_layer_embedding(token_indices_list, layer_index=10)
+        layer_9 = self.__extract_layer_embedding(token_indices_list, layer_index=9)
 
         result = torch.cat((layer_9, layer_10, layer_11, layer_12), dim=-1)
 
         return result
 
-    def __combine_layers_with_static_embeddings(self, word_seqs, last_layer_embeddings):
-        return torch.cat((self.embedding(word_seqs), last_layer_embeddings), dim=-1)
+    def __combine_layers_with_static_embeddings(self, token_indices_list, last_layer_embeddings):
+        return torch.cat((self.embedding(token_indices_list), last_layer_embeddings), dim=-1)
 
     def __extract_layer_embedding(self, token_indices_list, layer_index):
         embeddings = []
@@ -202,7 +205,6 @@ class TransformerEmbeddingDecoder(Decoder):
                 tokens.append(self.vocab[token_index])
             input_ids = torch.LongTensor(self.tokenizer.convert_tokens_to_ids(tokens)).unsqueeze(0).to(self.device)
             outputs = self.model(input_ids=input_ids, output_hidden_states=True)
-            # result = outputs.hidden_states[start_index].squeeze(0)
             result = 0
 
             for layer_index in range(start_index, total_layers_count):
@@ -211,6 +213,50 @@ class TransformerEmbeddingDecoder(Decoder):
 
         return torch.stack(embeddings)
 
+    def __static_and_cls(self, token_indices_list, include_static=True):
+        static_embeddings = self.embedding(token_indices_list)
+        si_embedding = self.embedding(torch.tensor(self.vocab.index('<s>'))).unsqueeze(0)
+        ei_embedding = self.embedding(torch.tensor(self.vocab.index('</s>'))).unsqueeze(0)
+        pad_embedding = self.embedding(torch.tensor(self.vocab.index(''))).unsqueeze(0)
+            
+        embeddings = []
+        for ws in token_indices_list:
+            utterance = []
+            for i in ws:
+                utterance.append(self.vocab[i])
+         
+            if '<s>' in utterance and '</s>' in utterance:                
+                len_utterance = len(utterance)
+                pad_index = utterance.index('</s>')                
+                utterance = utterance[:pad_index + 1]
+                utterance[utterance.index('<s>')] = '[CLS]'                
+                utterance[utterance.index('</s>')] = '[SEP]'
+                input_ids = torch.LongTensor(self.tokenizer.convert_tokens_to_ids(utterance)).unsqueeze(0)
+                outputs = self.model(input_ids=input_ids, output_hidden_states=True)            
+                
+                cls_embedding = outputs.hidden_states[12][0][1].unsqueeze(0)
+                cls_repeats = outputs.hidden_states[12].squeeze(0)[1:-1].shape[0]
+                cls_reshaped = torch.repeat_interleave(cls_embedding, cls_repeats, dim=0)
+                
+                outputs = torch.cat((si_embedding, cls_reshaped), dim=0)                
+                outputs = torch.cat((outputs, ei_embedding), dim=0)
+
+                if len_utterance > (pad_index + 1):
+                    for i in range(len_utterance - pad_index - 1):
+                        outputs = torch.cat((outputs, pad_embedding), dim=0)
+
+                embeddings.append(outputs)
+                
+        if len(embeddings) > 0:
+            embeddings_c = torch.stack(embeddings)
+            if include_static:
+                embeddings_c = torch.cat((static_embeddings, embeddings_c), dim=-1)
+        else:
+            embeddings_c = static_embeddings
+            if include_static:
+                embeddings_c = torch.cat((embeddings_c, embeddings_c), dim=-1)
+
+        return embeddings_c
 
 class TransformerEmbeddingDescriber(ContextualColorDescriber):
     """
